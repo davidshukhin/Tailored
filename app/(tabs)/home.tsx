@@ -17,11 +17,12 @@ const Home = () => {
     try {
       let { data: listings, error } = await supabase
         .from("listings")
-        .select("*");
+        .select("*"); 
 
       if (listings) {
         setListings(listings);
       }
+      
     } catch (error) {
       console.log(error);
       return;
