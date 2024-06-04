@@ -5,6 +5,10 @@ import { Database } from "../../database.types";
 import { supabase } from "../../lib/supabase";
 import { Image } from "expo-image";
 
+interface homePrompts {
+  swipedRight: boolean;
+}
+
 const Home = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [currentIndex, setCurrentindex] = useState(0);
@@ -17,12 +21,11 @@ const Home = () => {
     try {
       let { data: listings, error } = await supabase
         .from("listings")
-        .select("*"); 
+        .select("*");
 
       if (listings) {
         setListings(listings);
       }
-      
     } catch (error) {
       console.log(error);
       return;
@@ -35,6 +38,28 @@ const Home = () => {
 
   const prevListing = () => {
     setCurrentindex((prevIndex) => (prevIndex - 1) % listings.length);
+  };
+
+  const sendInput = async ({ swipedRight }) => {
+   
+    const isSwipedRight = !!swipedRight;
+
+    try {
+      const { data, error } = await supabase
+        .from("user_actions")
+        .insert([{ 
+          action_type: isSwipedRight, 
+          item_id: listings[currentIndex].id  
+        }]);
+
+      if (error) {
+        console.error("Error saving user action:", error);
+      } else {
+        console.log("User action saved:", data);
+      }
+    } catch (error) {
+      console.error("Error in sendInput function:", error);
+    }
   };
 
   return (
@@ -80,8 +105,8 @@ const Home = () => {
       </ScrollView>
       {listings.length > 1 && (
         <View className="flex-row mt-4">
-          <Button title="Left" onPress={nextListing} />
-          <Button title="Right" onPress={nextListing} />
+          <Button title="Left" onPress={() => { nextListing(); sendInput({ swipedRight: false }); }} />
+          <Button title="Right" onPress={() => { nextListing(); sendInput({ swipedRight: true }); }} />
         </View>
       )}
     </View>
