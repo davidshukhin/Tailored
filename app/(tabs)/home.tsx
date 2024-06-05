@@ -41,24 +41,29 @@ const Home = () => {
   };
 
   const sendInput = async ({ swipedRight }) => {
-   
     const isSwipedRight = !!swipedRight;
 
     try {
-      const { data, error } = await supabase
-        .from("user_actions")
-        .insert([{ 
-          action_type: isSwipedRight, 
-          item_id: listings[currentIndex].id  
-        }]);
-
-      if (error) {
-        console.error("Error saving user action:", error);
-      } else {
-        console.log("User action saved:", data);
-      }
+      const { data, error } = await supabase.from("user_actions").insert([
+        {
+          action_type: isSwipedRight,
+          item_id: listings[currentIndex].id,
+        },
+      ]);
     } catch (error) {
       console.error("Error in sendInput function:", error);
+    }
+  };
+
+  const likeItem = async () => {
+    try {
+      const { data, error } = await supabase.from("liked_items").insert([
+        {
+          item_id: listings[currentIndex].id,
+        },
+      ]);
+    } catch (error) {
+      console.error("Error liking item", error);
     }
   };
 
@@ -105,8 +110,23 @@ const Home = () => {
       </ScrollView>
       {listings.length > 1 && (
         <View className="flex-row mt-4">
-          <Button title="Left" onPress={() => { nextListing(); sendInput({ swipedRight: false }); }} />
-          <Button title="Right" onPress={() => { nextListing(); sendInput({ swipedRight: true }); }} />
+          <Button
+            title="Left"
+            onPress={() => {
+              sendInput({ swipedRight: false });
+              nextListing();
+              
+            }}
+          />
+          <Button
+            title="Right"
+            onPress={() => {
+              sendInput({ swipedRight: true });
+              likeItem();
+              nextListing();
+              
+            }}
+          />
         </View>
       )}
     </View>
