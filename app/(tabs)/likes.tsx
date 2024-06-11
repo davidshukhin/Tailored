@@ -139,7 +139,7 @@ const Likes = () => {
           renderItem={({ item }) => (
             <View className="flex-2 m-2 p-4 bg-white rounded shadow">
               <Image
-                source={{ uri: item.imageURL }}
+                source={{ uri: item.imageURLS[0] }}
                 className="w-full h-48 rounded-t-lg"
               />
               <Text className="text-xl font-bold">{item.name}</Text>

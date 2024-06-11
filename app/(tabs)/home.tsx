@@ -12,6 +12,7 @@ interface homePrompts {
 const Home = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [currentIndex, setCurrentindex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     fetchListings();
@@ -34,6 +35,7 @@ const Home = () => {
 
   const nextListing = () => {
     setCurrentindex((prevIndex) => (prevIndex + 1) % listings.length);
+    setImageIndex(0);
   };
 
   const prevListing = () => {
@@ -67,6 +69,12 @@ const Home = () => {
     }
   };
 
+  const nextImage = () => {
+    setImageIndex((prevIndex) => 
+      (prevIndex + 1) % listings[currentIndex].imageURLS.length
+    );
+  };
+
   return (
     <View className="items-center justify-center flex-1 bg-primary">
       <Text className="text-2xl mt-16">TAILORED FEED</Text>
@@ -82,11 +90,15 @@ const Home = () => {
             className="w-72 rounded-lg bg-white shadow-lg mb-4"
             key={currentIndex}
           >
-            <Image
-              source={{ uri: listings[currentIndex].imageURL }}
-              className="w-full h-48 rounded-t-lg"
-              contentFit="contain"
-            />
+             {listings[currentIndex]?.imageURLS?.[imageIndex] ? (
+              <Image
+                source={{ uri: listings[currentIndex].imageURLS[imageIndex] }}
+                className="w-full h-48 rounded-t-lg"
+                contentFit="contain"
+              />
+            ) : (
+              <Text>No Image Available</Text>
+            )}
             <View className="p-4">
               <Text className="text-xl font-bold mb-2">
                 {listings[currentIndex].name}
@@ -126,6 +138,9 @@ const Home = () => {
               nextListing();
               
             }}
+          />
+          <Button title="NextImage"
+          onPress={nextImage}
           />
         </View>
       )}
