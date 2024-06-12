@@ -10,6 +10,11 @@ module.exports = {
         secondary: "#432376",
         accent: "#792989",
       },
+      fontFamily: {
+        main: ['"M PLUS Rounded 1c"', 'ui-sans-serif', 'system-ui'],
+        serif: ['YourFontNameSerif', 'ui-serif', 'Georgia'],
+        mono: ['YourFontNameMono', 'ui-monospace', 'SFMono-Regular'],
+      },
     },
   },
   plugins: [],
