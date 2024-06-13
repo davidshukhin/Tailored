@@ -51,6 +51,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
             fontWeight: "600",
             fontSize: 18,
             textAlign: "center",
+            fontFamily: "mregular",
           }}
         >
           {title}

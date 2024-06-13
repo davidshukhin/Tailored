@@ -7,14 +7,73 @@ import {
   TouchableOpacity,
   Animated,
 } from "react-native";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomButton from "../../components/CustomButton";
 import PagerView from "react-native-pager-view";
+import { supabase } from "../../lib/supabase";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const Profile = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const barPosition = useRef(new Animated.Value(0)).current;
+  const [userData, setUserData] = useState({
+    username: "",
+    followers: 0,
+    following: 0,
+    likes: 0,
+    bio: "",
+    profile_picture: "",
+    user_photos: [],
+  });
+
+  const [user, setUser] = useState<string>("");
+
+  useEffect(() => {
+    getUser();
+  });
+
+  const getUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      setUser(user.id);
+      getUserData(user.id);
+    }
+  };
+
+  const getUserData = async (user_id: string) => {
+    try {
+      let { data: users, error } = await supabase
+        .from("users")
+        .select(
+          "*"
+        )
+        .eq("id", user_id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      if(users){
+        //setUserData(users);
+       setUserData({
+         username: users.username,
+         followers: users.followers,
+         following: users.following,
+         likes: users.likes,
+         bio: users.bio,
+         profile_picture: users.profile_picture,
+         user_photos: users.user_photos,
+      
+       });
+    }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -24,17 +83,16 @@ const Profile = () => {
     }).start();
   };
 
-
   const doNothing = () => {};
   return (
-    <SafeAreaView className="flex-1 h-full bg-primary">
-      <View className=" h-1/2 items-center flex-1  bg-primary">
-        <View className="h-36 w-36 mt-4 rounded-full overflow-hidden border-2 border-gray-300 p-0.5">
+    <SafeAreaView className="flex-1 bg-primary">
+      <View className=" items-center flex-1  bg-primary">
+        <View className="h-36 w-36 mt-4 rounded-full overflow-hidden border-4 border-white p-0.5">
           <View className="h-full w-full rounded-full overflow-hidden">
             <Image
               className="h-full w-full "
               source={{
-                uri: "https://lgqwtpmygjpbbdieaqof.supabase.co/storage/v1/object/sign/images/arcteryx.webp?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJpbWFnZXMvYXJjdGVyeXgud2VicCIsImlhdCI6MTcxNjc1MDUyNywiZXhwIjoxNzQ4Mjg2NTI3fQ.dN383XU75cBx7owxdyliQxJd9sAcslpGVNFnGBTnf0A&t=2024-05-26T19%3A08%3A47.962Z",
+                uri: userData.profile_picture,
               }}
               resizeMode="cover"
             />
@@ -60,25 +118,25 @@ const Profile = () => {
         </TouchableOpacity>
 
         <Text className="mt-8 text-white">Fashion Designer</Text>
-        <Text className="text-base font-bold text-white">Jane Doe</Text>
+        <Text className="text-base font-bold text-white">{userData.username}</Text>
 
         <View className="flex flex-row flex-grow mt-10 space-x-20">
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">100k</Text>
+            <Text className="text-white">{userData.following}</Text>
             <Text className="text-white">Following</Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">69</Text>
+            <Text className="text-white">{userData.followers}</Text>
             <Text className="text-white">Followers</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">420</Text>
+            <Text className="text-white">{userData.likes}</Text>
             <Text className="text-white">Likes</Text>
           </TouchableOpacity>
         </View>
       </View>
-       <View className="h-1/2 bg-white">
+      <View className="flex-1 bg-white h-96">
         <View className="flex flex-row justify-around items-center h-12 bg-white">
           <TouchableOpacity onPress={() => handlePageChange(0)}>
             <Text
@@ -99,25 +157,25 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
           <Animated.View
-          style={{
-            height: 4,
-            backgroundColor: "#7B73D3",
-            width: "50%",
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            transform: [
-              {
-                translateX: barPosition.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 200], // Adjust this based on your screen width
-                }),
-              },
-            ],
-          }}
-        />
+            style={{
+              height: 4,
+              backgroundColor: "#7B73D3",
+              width: "50%",
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              transform: [
+                {
+                  translateX: barPosition.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 200], // Adjust this based on your screen width
+                  }),
+                },
+              ],
+            }}
+          />
         </View>
-       
+
         <PagerView
           style={{ flex: 1 }}
           initialPage={0}

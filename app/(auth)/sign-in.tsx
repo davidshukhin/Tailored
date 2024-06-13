@@ -43,7 +43,7 @@ const SignIn = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-2xl text-white text-semibold mt-10 font-psemibold">
+          <Text className="text-2xl text-white text-semibold mt-10 font-mregular">
             Log into Tailored
           </Text>
 
@@ -68,12 +68,12 @@ const SignIn = () => {
           />
 
           <View className="justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-gray-100 font-pregular">
+            <Text className="text-lg text-gray-100 font-mregular">
               Don't have an account?
             </Text>
             <Link
               href="/sign-up"
-              className="text-lg font=psemibold text-secondary"
+              className="text-lg font-mregular text-secondary"
             >
               Sign Up
             </Link>

@@ -11,9 +11,9 @@ module.exports = {
         accent: "#792989",
       },
       fontFamily: {
-        main: ['"M PLUS Rounded 1c"', 'ui-sans-serif', 'system-ui'],
-        serif: ['YourFontNameSerif', 'ui-serif', 'Georgia'],
-        mono: ['YourFontNameMono', 'ui-monospace', 'SFMono-Regular'],
+        mregular: ["Mplus-Regular", "sans-serif"],
+        mbold: ["Mplus-Bold", "sans-serif"],
+        ps: ["PoorStory", "sans-serif"],
       },
     },
   },

@@ -31,7 +31,7 @@ const SignUp = () => {
         password: form.password,
       });
 
-      router.replace("/home");
+      router.replace("/profile-setup");
     } catch (error) {
     } finally {
       setIsSubmitting(false);
@@ -42,7 +42,6 @@ const SignUp = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-
           <Text className="text-2xl text-white text-semibold mt-10 font-psemibold">
             Sign up for Tailored
           </Text>
@@ -69,7 +68,7 @@ const SignUp = () => {
           <CustomButton
             title="Sign Up"
             handlePress={submit}
-            containerStyles="mt-7"
+            containerStyles="mt-7 "
             isLoading={isSubmitting}
           />
 
