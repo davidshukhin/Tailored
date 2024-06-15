@@ -77,7 +77,7 @@ const Create = () => {
         .insert([
           {
             name: form.name,
-            //brand: form.brand,
+            brand: form.brand,
             description: form.description,
             //color: form.color,
             //price: form.price,

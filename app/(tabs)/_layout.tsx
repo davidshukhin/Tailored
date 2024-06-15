@@ -12,19 +12,13 @@ interface TabIconProps {
 
 const TabIcon: React.FC<TabIconProps> = ({ icon, color, name, focused }) => {
   return (
-    <View className="items-center justify-center gap-2">
+    <View className="items-center justify-center mt-8">
       <Image
         source={icon}
         resizeMode="contain"
         tintColor={color}
         className="w-6 h-6"
       />
-      <Text
-        className={`${focused ? "font-psemibold" :
-         "font-pregular"} text-xs`} style={{ color: color }}
-      >
-        {name}
-      </Text>
     </View>
   );
 };
@@ -35,13 +29,23 @@ const TabsLayout = () => {
       <Tabs
         screenOptions={{
           tabBarShowLabel: false,
-          tabBarActiveTintColor: "#FFA001",
+          tabBarActiveTintColor: "#7B73D3",
           tabBarInactiveTintColor: "#CDCDE0",
           tabBarStyle: {
-            backgroundColor: "#161622",
-            //borderTopwidth: 1,
-            borderTopColor: '#232533',
-            height: 84,
+            backgroundColor: "white",
+            borderTopColor: "#232533",
+            position: "absolute",
+            left: 20,
+            right: 20,
+            bottom: 20,
+            borderRadius: 10,
+            height: 80,
+            borderTopWidth: 0,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.5,
+            shadowRadius: 8,
+            elevation: 5,
           },
         }}
       >
@@ -91,15 +95,15 @@ const TabsLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="cart"
+          name="search"
           options={{
-            title: "Cart",
+            title: "Search",
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
                 icon={icons.profile}
                 color={color}
-                name="Cart"
+                name="Search"
                 focused={focused}
               />
             ),

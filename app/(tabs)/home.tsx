@@ -1,9 +1,10 @@
-import { View, Button, Text, ScrollView } from "react-native";
+import { View, Button, Text, ScrollView, Touchable, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
 import { supabase } from "../../lib/supabase";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 
 interface homePrompts {
   swipedRight: boolean;
@@ -75,6 +76,10 @@ const Home = () => {
     );
   };
 
+  const viewItem = () => {
+  router.push(`/product/${listings[currentIndex].id}`);
+  };
+
   return (
     <View className="items-center justify-center flex-1 bg-primary">
       <Text className="text-2xl mt-16">TAILORED FEED</Text>
@@ -86,7 +91,8 @@ const Home = () => {
         }}
       >
         {listings.length > 0 && currentIndex > -1 ? (
-          <View
+         <TouchableOpacity onPress={viewItem}>
+         <View
             className="w-72 rounded-lg bg-white shadow-lg mb-4"
             key={currentIndex}
           >
@@ -116,12 +122,13 @@ const Home = () => {
               </View>
             </View>
           </View>
+          </TouchableOpacity>
         ) : (
           <Text>Loading...</Text>
         )}
       </ScrollView>
       {listings.length > 1 && (
-        <View className="flex-row mt-4">
+        <View className="flex-row mt-4 mb-32">
           <Button
             title="Left"
             onPress={() => {
