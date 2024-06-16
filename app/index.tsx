@@ -1,10 +1,19 @@
 import React from "react";
-import { Image, ScrollView, View, Text, TouchableOpacity } from "react-native";
-import { Link } from "expo-router";
+import { Image, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Link, router, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../constants";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function App() {
+  const { session, loading } = useAuth();
+  if (loading){
+    return <ActivityIndicator size="large" color="#FFA001" />;
+  }
+  if (session) {
+    router.push("/home");
+  }
+
   return (
     <SafeAreaView className="bg-primary flex-1 ">
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>

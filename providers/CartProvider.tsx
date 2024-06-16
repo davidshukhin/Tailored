@@ -5,7 +5,10 @@ type CartType = {
     addItem: (id: string) => void;
 }
 
-const CartContext = createContext({});
+const CartContext = createContext<CartType>({
+    items: [],
+    addItem: () => {},
+});
 
 const CartProvider = ({ children }: PropsWithChildren) => {
 const [items, setItems] = useState<string[]>([]);

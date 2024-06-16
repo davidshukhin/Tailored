@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Slot, SplashScreen, Stack, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import CartProvider from "../providers/CartProvider";
+import AuthProvider from "../providers/AuthProvider";
 
 SplashScreen.preventAutoHideAsync();
 const RootLayout = () => {
@@ -27,9 +28,11 @@ const RootLayout = () => {
   }
 
   return (
+    <AuthProvider>
     <CartProvider>
       <Slot />
     </CartProvider>
+    </AuthProvider>
   );
 };
 
