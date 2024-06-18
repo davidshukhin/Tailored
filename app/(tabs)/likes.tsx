@@ -71,7 +71,7 @@ const Likes = () => {
       let { data: listings, error: listingsError } = await supabase
         .from("listings")
         .select("*")
-        .in("id", likedItemIds);
+        .in("item_id", likedItemIds);
 
       if (listingsError) throw listingsError;
 
@@ -101,7 +101,7 @@ const Likes = () => {
 
         if (error) throw error;
 
-        console.log("Deleting liked item:", likedItem.id);
+        console.log("Deleting liked item:", likedItem);
         const { error: deleteError } = await supabase
           .from("liked_items")
           .delete()
@@ -112,8 +112,8 @@ const Likes = () => {
         console.log("Item deleted from database");
 
         // Refresh the list
-        setLikedItems(likedItems.filter(item => item.id !== listingId));
-        setLikedItemIds(likedItemIds.filter(id => id !== listingId));
+        setLikedItems(likedItems.filter(item => item.item_id !== listingId));
+        setLikedItemIds(likedItemIds.filter(item_id => item_id !== listingId));
       } else {
         console.log("No user found");
       }
@@ -135,7 +135,7 @@ const Likes = () => {
       ) : (
         <FlatList
           data={likedItems}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.item_id}
           renderItem={({ item }) => (
             <View className="flex-2 m-2 p-4 bg-white rounded shadow">
               <Image
@@ -150,7 +150,7 @@ const Likes = () => {
                 title="remove"
                 onPress={() => {
                   
-                  removeLikedItem(item.id);
+                  removeLikedItem(item.item_id);
                 }}
               />
             </View>

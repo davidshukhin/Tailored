@@ -54,7 +54,7 @@ const Profile = () => {
       let { data: users, error } = await supabase
         .from("users")
         .select("*")
-        .eq("id", user_id)
+        .eq("user_id", user_id)
         .single();
 
       if (error) {
@@ -82,7 +82,7 @@ const Profile = () => {
         .select("*")
 
         // Filters
-        .eq("seller", user_id);
+        .eq("user_id", user_id);
 
       if (listings) {
         setListings(listings);

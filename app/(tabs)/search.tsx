@@ -12,7 +12,7 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 
 interface UserData {
-  id: string;
+  user_id: string;
   username: string;
   profile_picture: string;
 }
@@ -74,7 +74,7 @@ const Search = () => {
         <FlashList
           data={userData}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.user_id}
           estimatedItemSize={100}
           className="w-full mt-4"
         />

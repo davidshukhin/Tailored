@@ -20,7 +20,7 @@ const Product = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { addItem } = useCart();
-
+  
   useEffect(() => {
     if (id) {
       fetchProduct(id as string);
@@ -33,9 +33,10 @@ const Product = () => {
       let { data, error } = await supabase
         .from("listings")
         .select("*")
-        .eq("id", productId)
+        .eq("item_id", productId)
         .single();
 
+        console.log(data);
       if (error) throw error;
       setProduct(data);
     } catch (error) {
@@ -47,8 +48,8 @@ const Product = () => {
 
   const addToCart = async () => {
     if (!product) return;
-    addItem(product.id);
-    console.log("Added to cart");
+    addItem(product.item_id);
+    console.log("Added to cart: " + product.item_id);
   }
 
   if (loading) {
