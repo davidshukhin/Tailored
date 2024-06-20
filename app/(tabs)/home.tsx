@@ -31,8 +31,16 @@ const Home = () => {
   const [likes, setLikes ] = useState(0);
 
   useEffect(() => {
-    fetchLikes();
-    fetchListings();
+    const fetchData = async () => {
+      await fetchListings();
+      if (listings.length > 0) {
+        await fetchLikes();
+        
+        
+      }
+    };
+    fetchData();
+   
   }, []);
 
   const fetchListings = async () => {
