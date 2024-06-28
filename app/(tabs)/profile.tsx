@@ -129,7 +129,7 @@ const Profile = () => {
   };
 
   const handleShare = () => {
-    router.replace("/chat");
+    router.replace("/cart");
   };
 
   return (
