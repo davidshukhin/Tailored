@@ -71,7 +71,7 @@ const TabsLayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.bookmark}
+                icon={icons.logo}
                 color={color}
                 name="Bookmark"
                 focused={focused}
@@ -101,7 +101,7 @@ const TabsLayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.profile}
+                icon={icons.search}
                 color={color}
                 name="Search"
                 focused={focused}

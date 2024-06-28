@@ -26,6 +26,8 @@ import { Defs, G, Path, Svg } from "react-native-svg";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { icons } from "../../constants";
 import TagBubbles from "../../components/TagBubbles";
+import { useCart } from "../../providers/CartProvider";
+
 
 interface homePrompts {
   swipedRight: boolean;
@@ -39,6 +41,7 @@ const Home = () => {
   const [likes, setLikes] = useState(0);
   const { width } = Dimensions.get("window"); // Get the screen width
   const [seller, setSeller] = useState<any>();
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -180,6 +183,12 @@ const Home = () => {
     }
   };
 
+  const addToCart = async () => {
+    if (!listings[currentIndex]) return;
+    addItem(listings[currentIndex].item_id);
+    console.log("Added to cart: " + listings[currentIndex].item_id);
+  }
+
   const renderCard = (card) => {
     return (
       <View className="w-full h-full bg-primary shadow-lg rounded-3xl">
@@ -271,6 +280,8 @@ const Home = () => {
             onSwipeTop={(cardIndex) => {
               //console.log('onSwipeTop', cardIndex);
               nextListing();
+              addToCart();
+              
             }}
             OverlayLabelRight={OverlayLabelRight}
             OverlayLabelLeft={OverlayLabelLeft}

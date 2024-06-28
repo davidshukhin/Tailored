@@ -32,6 +32,7 @@ const Profile = () => {
     user_photos: [],
   });
   const [listings, setListings] = useState([] as any);
+  const pagerViewRef = useRef<PagerView>(null);
 
   const [user, setUser] = useState<string>("");
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -132,6 +133,11 @@ const Profile = () => {
     router.replace("/cart");
   };
 
+  const goToPage = (page) => {
+    pagerViewRef.current?.setPage(page);
+    handlePageChange(page);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-row bg-primary">
@@ -162,7 +168,7 @@ const Profile = () => {
         scrollEventThrottle={16}
         className="flex-1"
       >
-       <Animated.View style={{ height: headerHeight }}>
+      
       <View className=" items-center flex-1  bg-primary">
         <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
           <View className="h-full w-full rounded-full overflow-hidden">
@@ -206,19 +212,19 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
       </View>
-      </Animated.View>
+      
       <View className="flex-1 bg-white h-96">
         <View className="flex flex-row justify-around items-center h-12 bg-white">
-          <TouchableOpacity onPress={() => handlePageChange(0)}>
+          <TouchableOpacity  onPress={() => goToPage(0)}>
             <Text
               className={`text-lg text-primary ${
                 currentPage === 0 ? "font-bold" : "font-normal"
               }`}
             >
-              Profile
+              Posts
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePageChange(1)}>
+          <TouchableOpacity  onPress={() => goToPage(1)}>
             <Text
               className={`text-lg text-primary ${
                 currentPage === 1 ? "font-bold" : "font-normal"
@@ -227,15 +233,16 @@ const Profile = () => {
               Selling
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePageChange(2)}>
+          <TouchableOpacity  onPress={() => goToPage(2)}>
             <Text
               className={`text-lg text-primary ${
                 currentPage === 2 ? "font-bold" : "font-normal"
               }`}
             >
-              Wishlist
+              Closet
             </Text>
           </TouchableOpacity>
+          
           <Animated.View
             style={{
               height: 4,
@@ -257,6 +264,7 @@ const Profile = () => {
         </View>
 
         <PagerView
+         ref={pagerViewRef}
           style={{ flex: 1 }}
           initialPage={0}
           onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
@@ -291,8 +299,8 @@ const Profile = () => {
             />
           </View>
           <View key="3" className="flex-1 items-center justify-center">
-            <Text className="text-black">Wishlist Content</Text>
-          </View>
+            <Text className="text-black">My Closet</Text>
+          </View> 
         </PagerView>
       </View>
       </Animated.ScrollView>
