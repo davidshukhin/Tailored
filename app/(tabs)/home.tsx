@@ -38,6 +38,7 @@ const Home = () => {
   const ref = useRef<SwiperCardRefType>(null); // Add a ref for Swiper
   const [likes, setLikes] = useState(0);
   const { width } = Dimensions.get("window"); // Get the screen width
+  const [seller, setSeller] = useState<any>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,6 +125,23 @@ const Home = () => {
   //   );
   // };
 
+  const getSellerData = async ({user_id}) => {
+  
+  try {
+    let { data: userData, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", user_id)
+      .single();
+
+    if (userData) {
+      console.log("Seller Data", userData);
+      setSeller(userData);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  };
   const viewItem = () => {
     router.push(`/product/${listings[currentIndex].item_id}`);
   };
@@ -194,8 +212,23 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className="items-center justify-center flex-1 bg-background">
-      <GestureHandlerRootView className=" bg-gray-100">
+    <SafeAreaView className="flex-1 bg-background">
+
+      <View className="flex-row justify-start p-4 items-center">
+      <View className="h-16 w-16 mt-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5">
+          <View className="h-full w-full rounded-full overflow-hidden">
+            <Image
+              className="h-full w-full "
+              source={{
+                uri: seller?.profile_picture,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        </View>
+        <Text>{seller?.username}</Text>
+        </View>
+      <GestureHandlerRootView className="flex-1 bg-gray-100">
         <View className="flex-1 justify-center items-center">
           <Swiper
             ref={ref}
@@ -213,6 +246,7 @@ const Home = () => {
               sendInput({ swipedRight: true });
               likeItem();
               nextListing();
+              getSellerData({user_id: listings[currentIndex+1].user_id});
             }}
             onSwipedAll={() => {
               console.log("onSwipedAll");
@@ -221,6 +255,7 @@ const Home = () => {
               //console.log('onSwipeLeft', cardIndex);
               sendInput({ swipedRight: false });
               nextListing();
+              getSellerData({user_id: listings[currentIndex+1].user_id});
             }}
             onSwipeTop={(cardIndex) => {
               //console.log('onSwipeTop', cardIndex);
