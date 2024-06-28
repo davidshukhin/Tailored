@@ -2,7 +2,7 @@ import React from "react";
 import { Image, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Link, router, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { images } from "../constants";
+import { images, icons } from "../constants";
 import { useAuth } from "../providers/AuthProvider";
 
 export default function App() {
@@ -19,7 +19,7 @@ export default function App() {
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <View className="flex-1 items-center mt-16  bg-primary">
           <Image
-            source={images.logotailored}
+            source={icons.logo}
             className="w-[80%] h-[20%]"
             resizeMode="contain"
           />

@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  Dimensions
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,7 +14,7 @@ import CustomButton from "../../components/CustomButton";
 import PagerView from "react-native-pager-view";
 import { supabase } from "../../lib/supabase";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
-import { FlashList } from "@shopify/flash-list";
+import { FlashList, MasonryFlashList } from "@shopify/flash-list";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
 import { icons } from "../../constants";
@@ -33,6 +34,13 @@ const Profile = () => {
   const [listings, setListings] = useState([] as any);
 
   const [user, setUser] = useState<string>("");
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const screenHeight = Dimensions.get("window").height;
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 200],
+    outputRange: [screenHeight * 0.3, 0],
+    extrapolate: "clamp",
+  });
 
   useEffect(() => {
     getUser();
@@ -106,7 +114,7 @@ const Profile = () => {
 
   const renderListingItem = ({ item }: { item }) => (
     <TouchableOpacity onPress={() => router.replace(`/product/${item.id}`)}>
-    <Image source={{ uri: item.imageURLS[0] }} className="w-24 h-24 m-1" />
+      <Image source={{ uri: item.imageURLS[0] }} className="w-24 h-24 m-1" />
     </TouchableOpacity>
   );
 
@@ -121,7 +129,7 @@ const Profile = () => {
   };
 
   const handleShare = () => {
-    router.replace("/cart");
+    router.replace("/chat");
   };
 
   return (
@@ -146,6 +154,15 @@ const Profile = () => {
           </Svg>
         </TouchableOpacity>
       </View>
+      <Animated.ScrollView
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+        className="flex-1"
+      >
+       <Animated.View style={{ height: headerHeight }}>
       <View className=" items-center flex-1  bg-primary">
         <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
           <View className="h-full w-full rounded-full overflow-hidden">
@@ -189,6 +206,7 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
       </View>
+      </Animated.View>
       <View className="flex-1 bg-white h-96">
         <View className="flex flex-row justify-around items-center h-12 bg-white">
           <TouchableOpacity onPress={() => handlePageChange(0)}>
@@ -244,21 +262,28 @@ const Profile = () => {
           onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
         >
           <View key="1" className="flex-1">
-            <FlashList
+            <MasonryFlashList
               data={userData.user_photos.map((photo) => ({ uri: photo }))}
               renderItem={({ item }) => (
                 <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
               )}
               keyExtractor={(item, index) => index.toString()}
               numColumns={3} // Adjust the number of columns to fit your design
-              estimatedItemSize={100}
-              className="w-full h-full"
+              estimatedItemSize={200}
+              //className="w-full h-full"
             />
+
+            <TouchableOpacity
+              onPress={doNothing}
+              className="absolute bottom-20 right-10"
+            >
+              <Image source={icons.plus} className="w-16 h-16" />
+            </TouchableOpacity>
           </View>
           <View key="2" className="flex-1">
             <FlashList
-               data={listings}
-               renderItem={renderListingItem}
+              data={listings}
+              renderItem={renderListingItem}
               keyExtractor={(item, index) => index.toString()}
               numColumns={3} // Adjust the number of columns to fit your design
               estimatedItemSize={100}
@@ -270,6 +295,7 @@ const Profile = () => {
           </View>
         </PagerView>
       </View>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 };

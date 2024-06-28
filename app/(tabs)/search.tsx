@@ -24,7 +24,7 @@ const Search = () => {
 
   useEffect(() => {
     // Fetch initial data
-    fetchProfiles("");
+   // fetchProfiles();
   }, []);
 
   const fetchProfiles = async (query: string) => {
@@ -50,16 +50,33 @@ const Search = () => {
     fetchProfiles(query);
   };
 
+  const navigateToChat = (recipientId: string, recipientName: string) => {
+    router.push(`/chat/${recipientId}?name=${recipientName}`);
+  };
+
+
   const renderItem = ({ item }: { item: UserData }) => (
-    <TouchableOpacity onPress={() => router.push(`/profile/${item.username}`)}>
-      <View className="flex flex-row items-center p-2">
-        <Image
-          source={{ uri: item.profile_picture }}
-          className="w-16 h-16 rounded-full"
-        />
-        <Text className="ml-4 text-lg">{item.username}</Text>
-      </View>
-    </TouchableOpacity>
+    <View className="flex flex-row items-center justify-between p-2">
+      <TouchableOpacity onPress={() => router.push(`/profile/${item.username}`)}>
+        <View className="flex flex-row items-center">
+          <Image
+            source={{ uri: item.profile_picture }}
+            className="w-16 h-16 rounded-full"
+          />
+          <Text className="ml-4 text-lg">{item.username}</Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity 
+      onPress={() => navigateToChat(item.user_id, item.username)}
+        // onPress={() => router.push({
+        //   pathname: "/chat",
+        //   params: { recipientId: item.user_id, recipientName: item.username }
+        // })}
+        className="bg-blue-500 px-4 py-2 rounded-lg"
+      >
+        <Text className="text-white">Message</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -69,7 +86,7 @@ const Search = () => {
           value={searchQuery}
           onChangeText={handleSearch}
           placeholder="Search profiles..."
-          className="w-11/12 p-2 bg-white rounded-lg mt-4"
+          className="w-11/12 p-2 bg-white rounded-lg mt-4 ml-4"
         />
         <FlashList
           data={userData}

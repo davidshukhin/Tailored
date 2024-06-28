@@ -12,6 +12,12 @@ import eyeHide from "../assets/icons/eye-hide.png";
 import eye from "../assets/icons/eye.png";
 import play from "../assets/icons/play.png";
 import pencil from "../assets/icons/pencil.png";
+import logo from "../assets/icons/logo.png";
+import dots from "../assets/icons/dots.png";
+import ruler from "../assets/icons/ruler.png";
+import like_button from "../assets/icons/like-button.png";
+import dislike_button from "../assets/icons/nope-button.png";
+import message_button from "../assets/icons/message-button.png";
 
 export default {
   play,
@@ -28,4 +34,10 @@ export default {
   eyeHide,
   eye,
   pencil,
+  logo,
+  dots,
+  ruler,
+  like_button,
+  dislike_button,
+  message_button,
 };

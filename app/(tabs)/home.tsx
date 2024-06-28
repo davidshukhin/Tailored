@@ -6,6 +6,9 @@ import {
   Touchable,
   TouchableOpacity,
   type ImageSourcePropType,
+  ImageBackground,
+  Dimensions,
+  SafeAreaView,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -13,11 +16,16 @@ import { Database } from "../../database.types";
 import { supabase } from "../../lib/supabase";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+} from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
-import { G, Path, Svg } from "react-native-svg";
+import { Defs, G, Path, Svg } from "react-native-svg";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { icons } from "../../constants";
+import TagBubbles from "../../components/TagBubbles";
 
 interface homePrompts {
   swipedRight: boolean;
@@ -26,21 +34,19 @@ interface homePrompts {
 const Home = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [currentIndex, setCurrentindex] = useState(0);
-  const [imageIndex, setImageIndex] = useState(0);
+  //const [imageIndex, setImageIndex] = useState(0);
   const ref = useRef<SwiperCardRefType>(null); // Add a ref for Swiper
-  const [likes, setLikes ] = useState(0);
+  const [likes, setLikes] = useState(0);
+  const { width } = Dimensions.get("window"); // Get the screen width
 
   useEffect(() => {
     const fetchData = async () => {
       await fetchListings();
       if (listings.length > 0) {
         await fetchLikes();
-        
-        
       }
     };
     fetchData();
-   
   }, []);
 
   const fetchListings = async () => {
@@ -60,7 +66,7 @@ const Home = () => {
 
   const nextListing = () => {
     setCurrentindex((prevIndex) => (prevIndex + 1) % listings.length);
-    setImageIndex(0);
+    //setImageIndex(0);
     fetchLikes();
   };
 
@@ -83,7 +89,6 @@ const Home = () => {
     }
   };
 
-
   const likeItem = async () => {
     try {
       const { data, error } = await supabase.from("liked_items").insert([
@@ -99,33 +104,33 @@ const Home = () => {
   const fetchLikes = async () => {
     try {
       let { data, error, count } = await supabase
-      .from("liked_items")
-      .select("*", { count: "exact" })
-      .eq("item_id",listings[currentIndex].item_id);
+        .from("liked_items")
+        .select("*", { count: "exact" })
+        .eq("item_id", listings[currentIndex].item_id);
       if (count) {
         setLikes(count);
-        console.log("Likes", count)
+        console.log("Likes", count);
       } else {
         setLikes(0);
       }
     } catch (error) {
       console.error("Error fetching likes", error);
     }
-  }
-
-  const nextImage = () => {
-    setImageIndex(
-      (prevIndex) => (prevIndex + 1) % listings[currentIndex].imageURLS.length
-    );
   };
+
+  // const nextImage = () => {
+  //   setImageIndex(
+  //     (prevIndex) => (prevIndex + 1) % listings[currentIndex].imageURLS.length
+  //   );
+  // };
 
   const viewItem = () => {
     router.push(`/product/${listings[currentIndex].item_id}`);
   };
 
   const OverlayLabelRight = () => (
-    <View className="absolute top-4 right-4 bg-green-500 p-2 rounded">
-      <Text className="text-white text-lg">MY PRECIOUS</Text>
+    <View className="absolute top-4 right-16 bg-green-500 p-2 rounded">
+      <Text className="text-white text-lg">Like</Text>
     </View>
   );
 
@@ -141,41 +146,65 @@ const Home = () => {
     </View>
   );
 
-  const renderCard = (card) => (
-    <View className="w-72 rounded-lg bg-primary shadow-lg">
-      {card.imageURLS[imageIndex] ? (
-        <TouchableOpacity onPress={viewItem}>
-          <Image
-            source={{ uri: card.imageURLS[imageIndex] }}
-            className="w-full h-96 rounded-t-lg"
-            contentFit="contain"
-          />
-        </TouchableOpacity>
-      ) : (
-        <Text>No Image Available</Text>
-      )}
-      <View className="p-4">
-        <Text className="text-xl font-bold mb-2">{card.name}</Text>
-        <Text className="text-gray-600 mb-2">{card.description}</Text>
-        <View className="flex-row justify-between items-center">
-          <Text className="text-lg text-green-600">{likes}</Text>
-          <Text className="text-lg text-green-600">${card.price}</Text>
-        </View>
+  const handleTap = (event: any) => {
+    const xCoordinate = event.nativeEvent.locationX;
+    const cardWidth = Dimensions.get("window").width * 0.9;
+
+    if (xCoordinate > cardWidth / 2) {
+      // Tapped on the right half, go to next image
+      nextListing();
+    } else {
+      // Tapped on the left half, go to previous image
+      prevListing();
+    }
+  };
+
+  const renderCard = (card) => {
+    return (
+      <View className="w-full h-full bg-primary shadow-lg rounded-3xl">
+        {card.imageURLS[0] ? (
+          <TouchableOpacity onPress={viewItem} className="flex-1">
+            <ImageBackground
+              source={{ uri: card.imageURLS[0] }}
+              className="w-full h-full "
+              imageStyle={{ borderRadius: 24 }}
+            >
+              <View className="flex-1 justify-end p-4">
+                <Text className="text-3xl text-white font-mbold mb-2 shadow-2xl">
+                  {card.name}
+                </Text>
+                <View className="flex-row items-center">
+                  <Image source={icons.ruler} className="w-6 h-6 mr-2" />
+                  <Text className="text-xl text-white font-mregular">
+                    Size {card.size}
+                  </Text>
+                </View>
+
+                <View className="flex-row justify-between items-center">
+                  <TagBubbles tags={card.tags} />
+                </View>
+              </View>
+            </ImageBackground>
+          </TouchableOpacity>
+        ) : (
+          <Text>No Image Available</Text>
+        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
-    <View className="items-center justify-center flex-1 bg-primary">
-      <Text className="text-2xl mt-16">TAILORED FEED</Text>
-      <GestureHandlerRootView className="flex-1 bg-gray-100">
+    <SafeAreaView className="items-center justify-center flex-1 bg-background">
+      <GestureHandlerRootView className=" bg-gray-100">
         <View className="flex-1 justify-center items-center">
           <Swiper
             ref={ref}
             cardStyle={{
               backgroundColor: "white",
               shadowRadius: 10,
-              borderRadius: 10,
+              borderRadius: 24,
+              height: "90%",
+              width: width * 0.95,
             }}
             data={listings}
             renderCard={renderCard}
@@ -212,64 +241,32 @@ const Home = () => {
           />
         </View>
 
-        {/* <View style={tw`flex-row justify-center mt-4`}>
-      <ActionButton
-        style={tw`bg-red-500 p-4 rounded-full`}
-        onTap={() => {
-          ref.current?.swipeLeft();
-        }}
-      >
-        <AntDesign name="close" size={32} color="white" />
-      </ActionButton>
-      <ActionButton
-        style={tw`bg-blue-500 p-4 rounded-full mx-2`}
-        onTap={() => {
-          ref.current?.swipeBack();
-        }}
-      >
-        <AntDesign name="reload1" size={24} color="white" />
-      </ActionButton>
-      <ActionButton
-        style={tw`bg-yellow-500 p-4 rounded-full`}
-        onTap={() => {
-          ref.current?.swipeTop();
-        }}
-      >
-        <AntDesign name="arrowup" size={32} color="white" />
-      </ActionButton>
-      <ActionButton
-        style={tw`bg-green-500 p-4 rounded-full`}
-        onTap={() => {
-          ref.current?.swipeRight();
-        }}
-      >
-        <AntDesign name="heart" size={32} color="white" />
-      </ActionButton> 
-    </View> */}
-      </GestureHandlerRootView>
-      {listings.length > 1 && (
-        <View className="flex-row mt-4 mb-32">
-         
-
-          <Button
-            title="Left"
+        <View className="flex-row justify-center mb-32 ">
+          <TouchableOpacity
+            className="shadow-sm"
             onPress={() => {
               ref.current?.swipeLeft();
             }}
-          />
-          <Button
-            title="Right"
+          >
+            <Image source={icons.dislike_button} className="w-24 h-24" />
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => {
               ref.current?.swipeRight();
-              // sendInput({ swipedRight: true });
-              // likeItem();
-              // nextListing();
             }}
-          />
-          <Button title="NextImage" onPress={nextImage} />
+          >
+            <Image source={icons.like_button} className="w-24 h-24" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              ref.current?.swipeRight();
+            }}
+          >
+            <Image source={icons.message_button} className="w-24 h-24" />
+          </TouchableOpacity>
         </View>
-      )}
-    </View>
+      </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
