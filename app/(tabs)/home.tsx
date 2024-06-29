@@ -316,7 +316,7 @@ const Home = () => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              ref.current?.swipeRight();
+              router.push(`/chat/${seller.user_id}?name=${seller.username}`);
             }}
           >
             <Image source={icons.message_button} className="w-24 h-24" />
