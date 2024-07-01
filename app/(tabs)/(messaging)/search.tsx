@@ -7,7 +7,7 @@ import {
   TextInput,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 

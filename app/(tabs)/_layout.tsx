@@ -95,7 +95,7 @@ const TabsLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="search"
+          name="(messaging)"
           options={{
             title: "Search",
             headerShown: false,
