@@ -85,10 +85,11 @@ const Buying = () => {
   };
 
   const renderItem = ({ item }: { item: ChatItem }) => (
-    <View className="flex-row justify-start p-4 items-center">
-      <TouchableOpacity
-        onPress={() => router.push(`/product/${item.listings.item_id}`)}
+    <TouchableOpacity
+        onPress={() => router.push(`/chat/${item.id}`)}
       >
+    <View className="flex-row justify-start p-4 bg-white shadow-sm items-center">
+      
         <View className="h-16 w-16 mt-2 mr-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5 ">
           <View className="h-full w-full rounded-full overflow-hidden">
             <Image
@@ -100,7 +101,7 @@ const Buying = () => {
             />
           </View>
         </View>
-      </TouchableOpacity>
+     
       <View className="flex-1">
         <Text className="font-mbold text-lg ">{item.listings.name}</Text>
         <TouchableOpacity onPress={() => router.push(`/profile/${item.users.username}`)}>
@@ -108,10 +109,8 @@ const Buying = () => {
         </TouchableOpacity>
         <Text className="font-mregular text-black">Price: ${item.listings.price}</Text>
       </View>
-      <TouchableOpacity onPress={() => router.push("/cart")}>
-        <Image source={require('../../../assets/icons/cart.png')} className="w-8 h-8" />
-      </TouchableOpacity>
-    </View>
+    </View> 
+    </TouchableOpacity>
   );
 
 
