@@ -153,7 +153,7 @@ const Home = () => {
   };
 
   const OverlayLabelRight = () => (
-    <View className="absolute top-4 right-16 bg-green-500 p-2 rounded">
+    <View className="absolute bg-green-500  rounded w-full h-full">
       <Text className="text-white text-3xl">Like</Text>
     </View>
   );
