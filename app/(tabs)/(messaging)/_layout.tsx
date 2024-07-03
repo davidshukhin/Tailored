@@ -16,6 +16,7 @@ const MessagingLayout = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <Text className="text-3xl ml-4 font-mbold">Messages</Text>
     <Tab.Navigator>
     <Tab.Screen name="Buying" component={Buying} />
     <Tab.Screen name="Selling" component={Selling} />

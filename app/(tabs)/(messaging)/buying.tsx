@@ -55,7 +55,7 @@ const Buying = () => {
 
   const fetchChats = async () => {
     try {
-      let { data: chats, error } = await supabase
+      let { data: chats, error} = await supabase
         .from("chats")
         .select(
           `
@@ -79,6 +79,7 @@ const Buying = () => {
         setChats(chats);
         console.log(chats);
       }
+      
     } catch (error) {
       console.log(error);
     }

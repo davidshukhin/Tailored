@@ -14,6 +14,7 @@ import { Svg, Path } from "react-native-svg";
 import { supabase } from "../../lib/supabase";
 import CustomButton from "../../components/CustomButton";
 import { useCart } from "../../providers/CartProvider";
+import TagBubbles from "../../components/TagBubbles";
 
 const Product = () => {
   const { id } = useLocalSearchParams();
@@ -59,7 +60,7 @@ const Product = () => {
   
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView className="flex-1 bg-white">
       <View className="flex-row">
         <TouchableOpacity onPress={() => router.back()} className="ml-4">
           <Svg width="15" height="24" viewBox="0 0 15 24" fill="none">
@@ -86,11 +87,15 @@ const Product = () => {
                 showsHorizontalScrollIndicator={true}
               />
             </View>
-            <View className="m-8">
-              <Text className="font-mbold text-2xl">{product.name}</Text>
+            <View className="ml-4 mr-4">
+              <View className="flex-row items-center justify-between">
+              <Text className="font-mbold text-xl">{product.name}</Text>
+              <Text className="text-xl">{product.likes}</Text>
+              </View>
               <Text className="font-mregular text-lg">{product.brand}</Text>
               <Text className="font-mregular"> ${product.price}</Text>
-              <Text className="font-mregular"> {product.description}</Text>
+              <Text className="font-mregular mt-2"> {product.description}</Text>
+              <TagBubbles size={20} tags={product.tags} />
 
               <CustomButton
                 title="Add to cart"
