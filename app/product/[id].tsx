@@ -7,6 +7,8 @@ import {
   FlatList,
   Image,
   ScrollView,
+  Button,
+  
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
@@ -106,7 +108,20 @@ const Product = () => {
           </ScrollView>
         </>
       ) : (
-        <Text>Product not found.</Text>
+        <View className="flex-1 items-center ">
+        <TouchableOpacity onPress={() => router.push('/cart')} className="ml-4 ">
+        {/* <Svg width="15" height="24" viewBox="0 0 15 24" fill="none">
+          <Path
+            d="M12.0692 3L3.23752 11.8317C3.10634 11.9629 3.10634 12.1756 3.23752 12.3067L12.0692 21.1385"
+            stroke="black"
+            stroke-width="5.37436"
+            stroke-linecap="round"
+          />
+        </Svg> */}
+        <Text className="text-3xl text-blue-600">Back</Text>
+      </TouchableOpacity>
+      
+        <Text>Product not found.</Text></View>
       )}
     </SafeAreaView>
   );

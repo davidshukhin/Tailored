@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { FlashList } from "@shopify/flash-list";
 
 type Product = {
-  id: string;
+  item_id: string;
   name: string;
   price: number;
   description: string;
@@ -50,7 +50,8 @@ const Cart = () => {
 
   const renderItem = ({ item }: { item: Product }) => (
     <View className="flex-row p-4 bg-white m-2 rounded-lg shadow-md">
-      <TouchableOpacity onPress={() => router.push(`/product/${item.id}`)}>
+    
+      <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
         <Image
           source={{ uri: item.imageURLS[0] }}
           className="w-20 h-20 rounded-md"

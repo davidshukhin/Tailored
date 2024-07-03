@@ -211,7 +211,7 @@ const Home = () => {
                 </View>
 
                 <View className="flex-row justify-between items-center">
-                  <TagBubbles tags={card.tags} />
+                  <TagBubbles size={12} tags={card.tags} />
                 </View>
               </View>
             </ImageBackground>

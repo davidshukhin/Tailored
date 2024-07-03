@@ -9,8 +9,8 @@ const TagBubbles = ({ tags, size }) => {
   return (
     <View className="flex-row flex-wrap items-center mt-2">
       {tags.map((tag, index) => (
-        <View key={index} className="bg-secondary rounded-3xl py-1 px-3 mr-2">
-          <Text className="font-mregular text-primary" style={{ fontSize: size }}>#{tag}</Text>
+        <View key={index} className="bg-secondary rounded-3xl py-1 px-3 m-1">
+          <Text className="font-mbold text-primary" style={{ fontSize: size }}>#{tag}</Text>
         </View>
       ))}
     </View>
