@@ -162,7 +162,7 @@ const Profile = () => {
         scrollEventThrottle={16}
         className="flex-1"
       >
-       <Animated.View style={{ height: headerHeight }}>
+       
       <View className=" items-center flex-1  bg-primary">
         <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
           <View className="h-full w-full rounded-full overflow-hidden">
@@ -206,7 +206,6 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
       </View>
-      </Animated.View>
       <View className="flex-1 bg-white h-96">
         <View className="flex flex-row justify-around items-center h-12 bg-white">
           <TouchableOpacity onPress={() => handlePageChange(0)}>
