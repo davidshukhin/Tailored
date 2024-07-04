@@ -276,7 +276,7 @@ const Profile = () => {
                   currentPage === 2 ? "font-bold" : "font-normal"
                 }`}
               >
-                Closet
+                Likes
               </Text>
             </TouchableOpacity>
 

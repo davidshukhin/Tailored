@@ -7,7 +7,6 @@ import {
   Button,
   RefreshControl,
   TouchableOpacity,
-  Pressable,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
@@ -149,7 +148,7 @@ const Likes = () => {
     console.log('Rendering item:', item); // Debug log to check item data
     return (
       <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
-      <View className="m-2 p-2 bg-white rounded-2xl shadow ">
+      <View className="m-2 p-4 bg-white rounded-2xl shadow ">
         <Image
           source={{ uri: item.imageURLS[0] }}
           className="w-full rounded-t-lg"
@@ -161,15 +160,12 @@ const Likes = () => {
           <Text className="text-lg text-green-600">${item.price}</Text>
           
         </View>
-        <Pressable
-          
-          style={{  padding: 10, borderRadius: 5 }}
+        <Button
+          title="Remove"
           onPress={() => {
             removeLikedItem(item.item_id);
           }}
-        >
-          <Text className="text-red-600">Remove</Text>
-        </Pressable>
+        />
       </View>
       </TouchableOpacity>
     );
