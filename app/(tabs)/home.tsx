@@ -26,6 +26,8 @@ import { Defs, G, Path, Svg } from "react-native-svg";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { icons } from "../../constants";
 import TagBubbles from "../../components/TagBubbles";
+import { useCart } from "../../providers/CartProvider";
+
 
 interface homePrompts {
   swipedRight: boolean;
@@ -39,6 +41,7 @@ const Home = () => {
   const [likes, setLikes] = useState(0);
   const { width } = Dimensions.get("window"); // Get the screen width
   const [seller, setSeller] = useState<any>();
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +51,7 @@ const Home = () => {
       }
     };
     fetchData();
+    
   }, []);
 
   const fetchListings = async () => {
@@ -58,7 +62,9 @@ const Home = () => {
 
       if (listings) {
         setListings(listings);
+        getSellerData({user_id: listings[currentIndex].user_id});
       }
+      
     } catch (error) {
       console.log(error);
       return;
@@ -147,14 +153,14 @@ const Home = () => {
   };
 
   const OverlayLabelRight = () => (
-    <View className="absolute top-4 right-16 bg-green-500 p-2 rounded">
-      <Text className="text-white text-lg">Like</Text>
+    <View className="absolute bg-green-500  rounded w-full h-full">
+      <Text className="text-white text-3xl">Like</Text>
     </View>
   );
 
   const OverlayLabelLeft = () => (
     <View className="absolute top-4 left-4 bg-red-500 p-2 rounded">
-      <Text className="text-white text-lg">NOPE</Text>
+      <Text className="text-white text-3xl">NOPE</Text>
     </View>
   );
 
@@ -176,6 +182,12 @@ const Home = () => {
       prevListing();
     }
   };
+
+  const addToCart = async () => {
+    if (!listings[currentIndex]) return;
+    addItem(listings[currentIndex].item_id);
+    console.log("Added to cart: " + listings[currentIndex].item_id);
+  }
 
   const renderCard = (card) => {
     return (
@@ -199,7 +211,7 @@ const Home = () => {
                 </View>
 
                 <View className="flex-row justify-between items-center">
-                  <TagBubbles tags={card.tags} />
+                  <TagBubbles size={12} tags={card.tags} />
                 </View>
               </View>
             </ImageBackground>
@@ -213,12 +225,13 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-
+     
       <View className="flex-row justify-start p-4 items-center">
-      <View className="h-16 w-16 mt-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5">
+        <TouchableOpacity onPress={() => router.push(`/profile/${seller?.username}`)}>
+      <View className="h-16 w-16 mt-2 mr-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5 ">
           <View className="h-full w-full rounded-full overflow-hidden">
             <Image
-              className="h-full w-full "
+              className="h-full w-full"
               source={{
                 uri: seller?.profile_picture,
               }}
@@ -226,7 +239,14 @@ const Home = () => {
             />
           </View>
         </View>
-        <Text>{seller?.username}</Text>
+        </TouchableOpacity>
+        <View className="flex-1">
+        <Text className="font-mbold text-lg ">{seller?.username}</Text>
+        <Text className="font-mregular">Likes: {likes}</Text>
+        </View>
+        <TouchableOpacity onPress={() => router.push("/cart")}>
+        <Image source={icons.cart} className="w-8 h-8" />
+        </TouchableOpacity>
         </View>
       <GestureHandlerRootView className="flex-1 bg-gray-100">
         <View className="flex-1 justify-center items-center">
@@ -236,8 +256,8 @@ const Home = () => {
               backgroundColor: "white",
               shadowRadius: 10,
               borderRadius: 24,
-              height: "90%",
-              width: width * 0.95,
+              height: "100%",
+              width: width * .95,
             }}
             data={listings}
             renderCard={renderCard}
@@ -260,6 +280,8 @@ const Home = () => {
             onSwipeTop={(cardIndex) => {
               //console.log('onSwipeTop', cardIndex);
               nextListing();
+              addToCart();
+              
             }}
             OverlayLabelRight={OverlayLabelRight}
             OverlayLabelLeft={OverlayLabelLeft}
@@ -276,7 +298,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center mb-32 ">
+        <View className="flex-row justify-center mb-24 ">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {
@@ -294,7 +316,7 @@ const Home = () => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              ref.current?.swipeRight();
+              router.push(`/chat/${seller.user_id}?name=${seller.username}`);
             }}
           >
             <Image source={icons.message_button} className="w-24 h-24" />

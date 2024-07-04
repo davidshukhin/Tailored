@@ -6,7 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Animated,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -32,6 +32,7 @@ const Profile = () => {
     user_photos: [],
   });
   const [listings, setListings] = useState([] as any);
+  const pagerViewRef = useRef<PagerView>(null);
 
   const [user, setUser] = useState<string>("");
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -68,16 +69,50 @@ const Profile = () => {
       if (error) {
         throw error;
       }
+
       if (users) {
-        setUserData({
-          username: users.username,
-          followers: users.followers,
-          following: users.following,
-          likes: users.likes,
-          bio: users.bio,
-          profile_picture: users.profile_picture,
-          user_photos: users.user_photos,
-        });
+        try {
+          const [
+            { count: followersCount, error: followersError },
+            { count: followingCount, error: followingError },
+            { count: likesCount, error: likesError},
+          ] = await Promise.all([
+            supabase
+              .from("followers")
+              .select("*", { count: "exact", head: true })
+              .eq("following_id", user_id),
+            supabase
+              .from("followers")
+              .select("*", { count: "exact", head: true })
+              .eq("follower_id", user_id),
+              supabase
+              .from('liked_items')
+              .select(`
+                item_id,
+                listings!inner (
+                  user_id
+                )
+              `, { count: 'exact' })
+              .eq('listings.user_id', user_id)
+          ]);
+
+          if (followersError) throw followersError;
+          if (followingError) throw followingError;
+          if (likesError) throw likesError;
+
+          setUserData({
+            username: users.username,
+            likes: likesCount || 0,
+            bio: users.bio,
+            profile_picture: users.profile_picture,
+            user_photos: users.user_photos,
+            followers: followersCount || 0,
+            following: followingCount || 0,
+          });
+        } catch (error) {
+          console.log(error);
+        }
+
         console.log(users.user_photos[0]);
       }
     } catch (error) {
@@ -129,7 +164,12 @@ const Profile = () => {
   };
 
   const handleShare = () => {
-    router.replace("/chat");
+    router.replace("/cart");
+  };
+
+  const goToPage = (page) => {
+    pagerViewRef.current?.setPage(page);
+    handlePageChange(page);
   };
 
   return (
@@ -162,138 +202,144 @@ const Profile = () => {
         scrollEventThrottle={16}
         className="flex-1"
       >
-       
-      <View className=" items-center flex-1  bg-primary">
-        <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
-          <View className="h-full w-full rounded-full overflow-hidden">
-            <Image
-              className="h-full w-full "
-              source={{
-                uri: userData.profile_picture,
-              }}
-              resizeMode="cover"
-            />
+        <View className=" items-center flex-1  bg-primary">
+          <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
+            <View className="h-full w-full rounded-full overflow-hidden">
+              <Image
+                className="h-full w-full "
+                source={{
+                  uri: userData.profile_picture,
+                }}
+                resizeMode="cover"
+              />
+            </View>
           </View>
-        </View>
 
-        <TouchableOpacity
-          onPress={handleEdit}
-          className="absolute shadow-md justify-center items-center mt-2"
-        >
-          <View className="h-8 w-8 bg-white rounded-full ml-28">
-            <Image source={icons.pencil} className="ml-2 mt-2" />
-          </View>
-        </TouchableOpacity>
-
-        <Text className="text-base font-mbold text-white mt-4">
-          {userData.username}
-        </Text>
-        <Text className="text-xs text-white font-mbold">{userData.bio}</Text>
-
-        <View className="flex flex-row flex-grow mt-6 space-x-20">
-          <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white font-mbold">{userData.following}</Text>
-            <Text className="text-white font-mbold">Following</Text>
+          <TouchableOpacity
+            onPress={handleEdit}
+            className="absolute shadow-md justify-center items-center mt-2"
+          >
+            <View className="h-8 w-8 bg-white rounded-full ml-28">
+              <Image source={icons.pencil} className="ml-2 mt-2" />
+            </View>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white font-mbold">{userData.followers}</Text>
-            <Text className="text-white font-mbold">Followers</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white font-mbold">{userData.likes}</Text>
-            <Text className="text-white font-mbold">Likes</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View className="flex-1 bg-white h-96">
-        <View className="flex flex-row justify-around items-center h-12 bg-white">
-          <TouchableOpacity onPress={() => handlePageChange(0)}>
-            <Text
-              className={`text-lg text-primary ${
-                currentPage === 0 ? "font-bold" : "font-normal"
-              }`}
-            >
-              Profile
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePageChange(1)}>
-            <Text
-              className={`text-lg text-primary ${
-                currentPage === 1 ? "font-bold" : "font-normal"
-              }`}
-            >
-              Selling
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePageChange(2)}>
-            <Text
-              className={`text-lg text-primary ${
-                currentPage === 2 ? "font-bold" : "font-normal"
-              }`}
-            >
-              Wishlist
-            </Text>
-          </TouchableOpacity>
-          <Animated.View
-            style={{
-              height: 4,
-              backgroundColor: "#7B73D3",
-              width: "50%",
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              transform: [
-                {
-                  translateX: barPosition.interpolate({
-                    inputRange: [0, 2],
-                    outputRange: [0, 200], // Adjust this based on your screen width
-                  }),
-                },
-              ],
-            }}
-          />
-        </View>
+          <Text className="text-base font-mbold text-white mt-4">
+            {userData.username}
+          </Text>
+          <Text className="text-xs text-white font-mbold">{userData.bio}</Text>
 
-        <PagerView
-          style={{ flex: 1 }}
-          initialPage={0}
-          onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
-        >
-          <View key="1" className="flex-1">
-            <MasonryFlashList
-              data={userData.user_photos.map((photo) => ({ uri: photo }))}
-              renderItem={({ item }) => (
-                <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
-              )}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={3} // Adjust the number of columns to fit your design
-              estimatedItemSize={200}
-              //className="w-full h-full"
-            />
-
-            <TouchableOpacity
-              onPress={doNothing}
-              className="absolute bottom-20 right-10"
-            >
-              <Image source={icons.plus} className="w-16 h-16" />
+          <View className="flex flex-row flex-grow mt-6 space-x-20">
+            <TouchableOpacity className="flex flex-col items-center">
+              <Text className="text-white font-mbold">
+                {userData.following}
+              </Text>
+              <Text className="text-white font-mbold">Following</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity className="flex flex-col items-center">
+              <Text className="text-white font-mbold">
+                {userData.followers}
+              </Text>
+              <Text className="text-white font-mbold">Followers</Text>
+            </TouchableOpacity>
+            <View className="flex flex-col items-center">
+              <Text className="text-white font-mbold">{userData.likes}</Text>
+              <Text className="text-white font-mbold">Likes</Text>
+            </View>
           </View>
-          <View key="2" className="flex-1">
-            <FlashList
-              data={listings}
-              renderItem={renderListingItem}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={3} // Adjust the number of columns to fit your design
-              estimatedItemSize={100}
-              className="w-full h-full"
+        </View>
+
+        <View className="flex-1 bg-white h-96">
+          <View className="flex flex-row justify-around items-center h-12 bg-white">
+            <TouchableOpacity onPress={() => goToPage(0)}>
+              <Text
+                className={`text-lg text-primary ${
+                  currentPage === 0 ? "font-bold" : "font-normal"
+                }`}
+              >
+                Posts
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goToPage(1)}>
+              <Text
+                className={`text-lg text-primary ${
+                  currentPage === 1 ? "font-bold" : "font-normal"
+                }`}
+              >
+                Selling
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goToPage(2)}>
+              <Text
+                className={`text-lg text-primary ${
+                  currentPage === 2 ? "font-bold" : "font-normal"
+                }`}
+              >
+                Closet
+              </Text>
+            </TouchableOpacity>
+
+            <Animated.View
+              style={{
+                height: 4,
+                backgroundColor: "#7B73D3",
+                width: "50%",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                transform: [
+                  {
+                    translateX: barPosition.interpolate({
+                      inputRange: [0, 2],
+                      outputRange: [0, 200], // Adjust this based on your screen width
+                    }),
+                  },
+                ],
+              }}
             />
           </View>
-          <View key="3" className="flex-1 items-center justify-center">
-            <Text className="text-black">Wishlist Content</Text>
-          </View>
-        </PagerView>
-      </View>
+
+          <PagerView
+            ref={pagerViewRef}
+            style={{ flex: 1 }}
+            initialPage={0}
+            onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
+          >
+            <View key="1" className="flex-1">
+              <MasonryFlashList
+                data={userData.user_photos.map((photo) => ({ uri: photo }))}
+                renderItem={({ item }) => (
+                  <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
+                )}
+                keyExtractor={(item, index) => index.toString()}
+                numColumns={3} // Adjust the number of columns to fit your design
+                estimatedItemSize={200}
+                //className="w-full h-full"
+              />
+
+              <TouchableOpacity
+                onPress={doNothing}
+                className="absolute bottom-20 right-10"
+              >
+                <Image source={icons.plus} className="w-16 h-16" />
+              </TouchableOpacity>
+            </View>
+            <View key="2" className="flex-1">
+              <FlashList
+                data={listings}
+                renderItem={renderListingItem}
+                keyExtractor={(item, index) => index.toString()}
+                numColumns={3} // Adjust the number of columns to fit your design
+                estimatedItemSize={100}
+                className="w-full h-full"
+              />
+            </View>
+            <View key="3" className="flex-1 items-center justify-center">
+              <Text className="text-black">My Closet</Text>
+            </View>
+          </PagerView>
+        </View>
       </Animated.ScrollView>
     </SafeAreaView>
   );

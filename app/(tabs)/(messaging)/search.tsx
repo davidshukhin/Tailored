@@ -7,7 +7,7 @@ import {
   TextInput,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 
@@ -56,7 +56,7 @@ const Search = () => {
 
 
   const renderItem = ({ item }: { item: UserData }) => (
-    <View className="flex flex-row items-center justify-between p-2">
+    <View className="flex flex-row items-center justify-between p-2 bg-white shadow-md">
       <TouchableOpacity onPress={() => router.push(`/profile/${item.username}`)}>
         <View className="flex flex-row items-center">
           <Image
@@ -80,8 +80,8 @@ const Search = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <View className="flex-1 bg-primary">
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <TextInput
           value={searchQuery}
           onChangeText={handleSearch}

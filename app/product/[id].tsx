@@ -7,6 +7,8 @@ import {
   FlatList,
   Image,
   ScrollView,
+  Button,
+  
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
@@ -14,6 +16,7 @@ import { Svg, Path } from "react-native-svg";
 import { supabase } from "../../lib/supabase";
 import CustomButton from "../../components/CustomButton";
 import { useCart } from "../../providers/CartProvider";
+import TagBubbles from "../../components/TagBubbles";
 
 const Product = () => {
   const { id } = useLocalSearchParams();
@@ -59,7 +62,7 @@ const Product = () => {
   
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView className="flex-1 bg-white">
       <View className="flex-row">
         <TouchableOpacity onPress={() => router.back()} className="ml-4">
           <Svg width="15" height="24" viewBox="0 0 15 24" fill="none">
@@ -86,11 +89,15 @@ const Product = () => {
                 showsHorizontalScrollIndicator={true}
               />
             </View>
-            <View className="m-8">
-              <Text className="font-mbold text-2xl">{product.name}</Text>
+            <View className="ml-4 mr-4">
+              <View className="flex-row items-center justify-between">
+              <Text className="font-mbold text-xl">{product.name}</Text>
+              <Text className="text-xl">{product.likes}</Text>
+              </View>
               <Text className="font-mregular text-lg">{product.brand}</Text>
               <Text className="font-mregular"> ${product.price}</Text>
-              <Text className="font-mregular"> {product.description}</Text>
+              <Text className="font-mregular mt-2"> {product.description}</Text>
+              <TagBubbles size={20} tags={product.tags} />
 
               <CustomButton
                 title="Add to cart"
@@ -101,7 +108,20 @@ const Product = () => {
           </ScrollView>
         </>
       ) : (
-        <Text>Product not found.</Text>
+        <View className="flex-1 items-center ">
+        <TouchableOpacity onPress={() => router.push('/cart')} className="ml-4 ">
+        {/* <Svg width="15" height="24" viewBox="0 0 15 24" fill="none">
+          <Path
+            d="M12.0692 3L3.23752 11.8317C3.10634 11.9629 3.10634 12.1756 3.23752 12.3067L12.0692 21.1385"
+            stroke="black"
+            stroke-width="5.37436"
+            stroke-linecap="round"
+          />
+        </Svg> */}
+        <Text className="text-3xl text-blue-600">Back</Text>
+      </TouchableOpacity>
+      
+        <Text>Product not found.</Text></View>
       )}
     </SafeAreaView>
   );

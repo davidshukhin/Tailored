@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, Button, FlatList, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import io from 'socket.io-client';
 
@@ -106,7 +106,9 @@ const ChatScreen: React.FC = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
     >
-      <View className="flex-1 bg-white p-4 mb-24">
+      
+      <View className="flex-1 bg-white p-4 mt-8 mb-24">
+        <Button onPress={() => router.back()} title="Back" /> 
         <Text className="text-xl font-bold mb-4">Chat with {recipientName}</Text>
         <FlatList
           ref={flatListRef}

@@ -4,11 +4,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, ScrollView, Dimensions, Alert, Image } from "react-native";
 
 import { images } from "../../constants";
-import { supabase } from "../../lib/supabase";
+
 
 import FormField from "../../components/FormField";
 
 import CustomButton from "../../components/CustomButton";
+import { supabase } from "../../lib/supabase";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -19,8 +20,9 @@ const SignUp = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async () => {
-    if (!form.username || !form.email || !form.password) {
+    if (!form.email || !form.password) {
       Alert.alert("Error", "Please fill in all the fields");
+      return;
     }
 
     setIsSubmitting(true);
@@ -31,7 +33,20 @@ const SignUp = () => {
         password: form.password,
       });
 
-      router.replace("/profile-setup");
+     
+      if (error){
+        console.log(error)
+         throw error;} // Add this to handle Supabase errors
+
+      // Check if the sign-up was successful
+      if (data.user) {
+        Alert.alert("Success", "Account created successfully. Please check your email for verification.");
+        router.replace("/profile-setup");
+      } else {
+        Alert.alert("Error", "Failed to create account. Please try again.");
+      }
+
+
     } catch (error) {
     } finally {
       setIsSubmitting(false);
@@ -46,11 +61,6 @@ const SignUp = () => {
             Sign up for Tailored
           </Text>
 
-          <FormField
-            title="Username"
-            value={form.username}
-            handleChangeText={(e) => setForm({ ...form, username: e })}
-          />
 
           <FormField
             title="Email"
@@ -63,6 +73,7 @@ const SignUp = () => {
             title="Password"
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
+            secureTextEntry={true}
           />
 
           <CustomButton

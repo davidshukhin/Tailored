@@ -37,13 +37,13 @@ const TabsLayout = () => {
             position: "absolute",
             left: 20,
             right: 20,
-            bottom: 20,
-            borderRadius: 10,
+            bottom: 30,
+            borderRadius: 20,
             height: 80,
             borderTopWidth: 0,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.5,
+            shadowOpacity: 0.7,
             shadowRadius: 8,
             elevation: 5,
           },
@@ -71,7 +71,7 @@ const TabsLayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.bookmark}
+                icon={icons.logo}
                 color={color}
                 name="Bookmark"
                 focused={focused}
@@ -95,13 +95,13 @@ const TabsLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="search"
+          name="(messaging)"
           options={{
             title: "Search",
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.profile}
+                icon={icons.search}
                 color={color}
                 name="Search"
                 focused={focused}
