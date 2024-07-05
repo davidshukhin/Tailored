@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Alert,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,6 +19,9 @@ import { FlashList, MasonryFlashList } from "@shopify/flash-list";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
 import { icons } from "../../constants";
+import * as FileSystem from "expo-file-system";
+import { decode } from "base64-arraybuffer";
+import * as ImagePicker from "expo-image-picker";
 
 const Profile = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,6 +37,8 @@ const Profile = () => {
   });
   const [listings, setListings] = useState([] as any);
   const pagerViewRef = useRef<PagerView>(null);
+  const [image, setImage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [user, setUser] = useState<string>("");
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -75,7 +81,7 @@ const Profile = () => {
           const [
             { count: followersCount, error: followersError },
             { count: followingCount, error: followingError },
-            { count: likesCount, error: likesError},
+            { count: likesCount, error: likesError },
           ] = await Promise.all([
             supabase
               .from("followers")
@@ -85,15 +91,18 @@ const Profile = () => {
               .from("followers")
               .select("*", { count: "exact", head: true })
               .eq("follower_id", user_id),
-              supabase
-              .from('liked_items')
-              .select(`
+            supabase
+              .from("liked_items")
+              .select(
+                `
                 item_id,
                 listings!inner (
                   user_id
                 )
-              `, { count: 'exact' })
-              .eq('listings.user_id', user_id)
+              `,
+                { count: "exact" }
+              )
+              .eq("listings.user_id", user_id),
           ]);
 
           if (followersError) throw followersError;
@@ -141,6 +150,107 @@ const Profile = () => {
       toValue: page,
       useNativeDriver: false,
     }).start();
+  };
+
+  const selectImage = async () => {
+    const options: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+    };
+
+    const result = await ImagePicker.launchImageLibraryAsync(options);
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+
+      setImage(imageUri);
+      handleSubmit();
+    } else {
+      Alert.alert("Error", "Image selection was canceled");
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    const img = image;
+    if (img) {
+      try {
+        console.log("Uploading image: ", img);
+        const base64 = await FileSystem.readAsStringAsync(img, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const fileExtension = img.split(".").pop();
+        const filePath = `${new Date().getTime()}.${fileExtension}`;
+        const contentType = `image/${fileExtension}`;
+
+        const { data, error } = await supabase.storage
+          .from("images")
+          .upload(filePath, decode(base64), { contentType });
+
+        if (error) {
+          console.error("Supabase upload error:", error);
+          return null;
+        } else if (data) {
+          const { data: publicUrlData } = supabase.storage
+            .from("images")
+            .getPublicUrl(filePath);
+          const publicUrl = publicUrlData.publicUrl;
+          if (publicUrl) {
+            console.log("Image URL: ", publicUrl);
+            return publicUrl;
+          }
+        }
+      } catch (err) {
+        console.error("File upload error:", err);
+        return null;
+      }
+    } else {
+      return "";
+    }
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const imageURL = await uploadImage().catch((error) => {
+        console.error("Profile picture upload failed:", error);
+        return null;
+      });
+
+      if (imageURL) {
+        console.log("Image uploaded successfully:", imageURL);
+        await submit(imageURL);
+      } else {
+        Alert.alert("Error", `All image uploads failed.`);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      Alert.alert("Error", "An error occurred during submission");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submit = async (imageURL: string) => {
+   
+          
+          let currentPhotos: string[] = userData.user_photos;
+          
+          currentPhotos.push(imageURL);
+          const { data, error } = await supabase
+            .from("users")
+            .update({ user_photos: currentPhotos })
+            .eq("user_id", user);
+          if (error) {
+            console.error("Error updating user photos:", error.message);
+          } else {
+          }
+        
+
+
+    
+   
   };
 
   const renderItem = ({ item }) => (
@@ -230,18 +340,23 @@ const Profile = () => {
           <Text className="text-xs text-white font-mbold">{userData.bio}</Text>
 
           <View className="flex flex-row flex-grow mt-6 space-x-20">
-            <TouchableOpacity className="flex flex-col items-center">
-              <Text className="text-white font-mbold">
-                {userData.following}
-              </Text>
-              <Text className="text-white font-mbold">Following</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex flex-col items-center">
+            <TouchableOpacity
+              onPress={() => router.push(`/following/${userData.username}`)}
+              className="flex flex-col items-center"
+            >
               <Text className="text-white font-mbold">
                 {userData.followers}
               </Text>
               <Text className="text-white font-mbold">Followers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push(`/followers/:id`)}
+              className="flex flex-col items-center"
+            >
+              <Text className="text-white font-mbold">
+                {userData.following}
+              </Text>
+              <Text className="text-white font-mbold">Following</Text>
             </TouchableOpacity>
             <View className="flex flex-col items-center">
               <Text className="text-white font-mbold">{userData.likes}</Text>
@@ -319,7 +434,7 @@ const Profile = () => {
               />
 
               <TouchableOpacity
-                onPress={doNothing}
+                onPress={selectImage}
                 className="absolute bottom-20 right-10"
               >
                 <Image source={icons.plus} className="w-16 h-16" />
@@ -343,6 +458,7 @@ const Profile = () => {
       </Animated.ScrollView>
     </SafeAreaView>
   );
+
 };
 
 export default Profile;

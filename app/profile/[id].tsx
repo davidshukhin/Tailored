@@ -28,6 +28,15 @@ const UserProfileScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [profile, setProfile] = useState<UserData | null>(null);
+  const [profileData, setProfileData] = useState({
+    username: "",
+    followers: 0,
+    following: 0,
+    likes: 0,
+    bio: "",
+    profile_picture: "",
+    user_photos: [],
+  });
   const [currentPage, setCurrentPage] = useState(0);
   const barPosition = useRef(new Animated.Value(0)).current;
   const [listings, setListings] = useState([] as any);
@@ -38,18 +47,13 @@ const UserProfileScreen = () => {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [likesCount, setLikesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      await getUser();
-      if (id) {
-        await fetchUserProfile(id as string);
-      }
-    };
-    fetchData();
+    fetchUserProfile(id as string);
   }, [id]);
 
-  const getUser = async () => {
+  const fetchUserProfile = async (userId: string) => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -57,9 +61,6 @@ const UserProfileScreen = () => {
     if (user) {
       setUser(user.id);
     }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
     try {
       let { data: profile, error } = await supabase
         .from("users")
@@ -68,64 +69,64 @@ const UserProfileScreen = () => {
         .single();
 
       if (error) throw error;
+
       if (profile) {
         setProfile(profile);
-        if (user) {
-          let { data: followers, error } = await supabase
+        try {
+          const [
+            { count: followersCount, error: followersError },
+            { count: followingCount, error: followingError },
+            { count: likesCount, error: likesError },
+            { data: isFollowing, error: isFollowingError}
+          ] = await Promise.all([
+            supabase
+              .from("followers")
+              .select("*", { count: "exact", head: true })
+              .eq("following_id", userId),
+            supabase
+              .from("followers")
+              .select("*", { count: "exact", head: true })
+              .eq("follower_id", userId),
+            supabase
+              .from("liked_items")
+              .select(
+                `
+                item_id,
+                listings!inner (
+                  user_id
+                )
+              `,
+                { count: "exact" }
+              )
+              .eq("listings.user_id", userId),
+            supabase
             .from("followers")
-            .select("*") 
-            .eq("user_id", profile.user_id)
-            .eq("follower_id", user); 
- 
-          if ( followers !== null && followers?.length > 0) {
-            setFollowing(true);
-            console.log("Following");
-          }
+            .select("*")
+            .eq("follower_id", user?.id)
+            .eq("following_id", profile.user_id)
+          ]);
+
+          if (followersError) throw followersError;
+          if (followingError) throw followingError;
+          if (likesError) throw likesError;
+          if (isFollowingError) throw isFollowingError;
+
+          setProfileData({
+            username: profile.username,
+            likes: likesCount || 0,
+            bio: profile.bio,
+            profile_picture: profile.profile_picture,
+            user_photos: profile.user_photos,
+            followers: followersCount || 0,
+            following: followingCount || 0,
+          });
+          setFollowing(isFollowing.length > 0);
+        } catch (error) {
+          console.log(error);
         }
       }
     } catch (error) {
       console.log(error);
-    }
-
-    if (profile) {
-      try {
-        let { data, error, count } = await supabase
-          .from("followers")
-          .select("*", { count: "exact" })
-          .eq("user_id", profile.user_id);
-
-        if (error) throw error;
-
-        if (count) setFollowerCount(count);
-      } catch (error) {
-        console.error("Error fetching follower count:", error);
-      }
-
-      try {
-        let { data, error, count } = await supabase
-          .from("followers")
-          .select("*", { count: "exact" })
-          .eq("follower_id", profile.user_id);
-
-        if (error) throw error;
-
-        if (count) setFollowingCount(count);
-      } catch (error) {
-        console.error("Error fetching following count:", error);
-      }
-
-      try {
-        let { data, error, count } = await supabase
-          .from("liked_items")
-          .select("*", { count: "exact" })
-          .eq("user_id", profile.user_id);
-
-          if(error) throw error;
-
-          if(count){
-            setLikesCount(count);
-          }
-      } catch (error) {}
     }
 
     try {
@@ -154,18 +155,7 @@ const UserProfileScreen = () => {
       console.log(error);
     }
 
-    try {
-      let { data: likes, error } = await supabase
-        .from("listings")
-        .select("*")
-        .contains("id", [likeIds, "contains"]);
-
-      if (likes) {
-        setLikes(likes);
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    setLoading(false);
   };
 
   const followUser = async () => {
@@ -220,7 +210,9 @@ const UserProfileScreen = () => {
       useNativeDriver: false,
     }).start();
   };
-  return (
+  return loading ? (
+    <Text>Loading...</Text>
+  ) : (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="items-center flex-1 bg-primary">
         <TouchableOpacity onPress={router.back} className="mt-4 p-2">

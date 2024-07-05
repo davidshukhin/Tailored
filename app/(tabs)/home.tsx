@@ -27,7 +27,7 @@ import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { icons } from "../../constants";
 import TagBubbles from "../../components/TagBubbles";
 import { useCart } from "../../providers/CartProvider";
-
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 interface homePrompts {
   swipedRight: boolean;
@@ -40,6 +40,8 @@ const Home = () => {
   const ref = useRef<SwiperCardRefType>(null); // Add a ref for Swiper
   const [likes, setLikes] = useState(0);
   const { width } = Dimensions.get("window"); // Get the screen width
+  const cardWidth = width * 0.95;
+  const cardHeight = cardWidth * 1.5;
   const [seller, setSeller] = useState<any>();
   const { addItem } = useCart();
 
@@ -51,7 +53,6 @@ const Home = () => {
       }
     };
     fetchData();
-    
   }, []);
 
   const fetchListings = async () => {
@@ -62,9 +63,8 @@ const Home = () => {
 
       if (listings) {
         setListings(listings);
-        getSellerData({user_id: listings[currentIndex].user_id});
+        getSellerData({ user_id: listings[currentIndex].user_id });
       }
-      
     } catch (error) {
       console.log(error);
       return;
@@ -131,22 +131,21 @@ const Home = () => {
   //   );
   // };
 
-  const getSellerData = async ({user_id}) => {
-  
-  try {
-    let { data: userData, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("user_id", user_id)
-      .single();
+  const getSellerData = async ({ user_id }) => {
+    try {
+      let { data: userData, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", user_id)
+        .single();
 
-    if (userData) {
-      console.log("Seller Data", userData);
-      setSeller(userData);
+      if (userData) {
+        console.log("Seller Data", userData);
+        setSeller(userData);
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
-  }
   };
   const viewItem = () => {
     router.push(`/product/${listings[currentIndex].item_id}`);
@@ -187,7 +186,7 @@ const Home = () => {
     if (!listings[currentIndex]) return;
     addItem(listings[currentIndex].item_id);
     console.log("Added to cart: " + listings[currentIndex].item_id);
-  }
+  };
 
   const renderCard = (card) => {
     return (
@@ -225,29 +224,30 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-     
       <View className="flex-row justify-start p-4 items-center">
-        <TouchableOpacity onPress={() => router.push(`/profile/${seller?.username}`)}>
-      <View className="h-16 w-16 mt-2 mr-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5 ">
-          <View className="h-full w-full rounded-full overflow-hidden">
-            <Image
-              className="h-full w-full"
-              source={{
-                uri: seller?.profile_picture,
-              }}
-              resizeMode="cover"
-            />
+        <TouchableOpacity
+          onPress={() => router.push(`/profile/${seller?.username}`)}
+        >
+          <View className="h-16 w-16 mt-2 mr-2 rounded-full overflow-hidden border-2 border-gray-200 p-0.5 ">
+            <View className="h-full w-full rounded-full overflow-hidden">
+              <Image
+                className="h-full w-full"
+                source={{
+                  uri: seller?.profile_picture,
+                }}
+                resizeMode="cover"
+              />
+            </View>
           </View>
-        </View>
         </TouchableOpacity>
         <View className="flex-1">
-        <Text className="font-mbold text-lg ">{seller?.username}</Text>
-        <Text className="font-mregular">Likes: {likes}</Text>
+          <Text className="font-mbold text-lg ">{seller?.username}</Text>
+          <Text className="font-mregular">Likes: {likes}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push("/cart")}>
-        <Image source={icons.cart} className="w-8 h-8" />
+          <Image source={icons.cart} className="w-8 h-8" />
         </TouchableOpacity>
-        </View>
+      </View>
       <GestureHandlerRootView className="flex-1 bg-gray-100">
         <View className="flex-1 justify-center items-center">
           <Swiper
@@ -257,7 +257,7 @@ const Home = () => {
               shadowRadius: 10,
               borderRadius: 24,
               height: "100%",
-              width: width * .95,
+              width: width * 0.95,
             }}
             data={listings}
             renderCard={renderCard}
@@ -266,7 +266,7 @@ const Home = () => {
               sendInput({ swipedRight: true });
               likeItem();
               nextListing();
-              getSellerData({user_id: listings[currentIndex+1].user_id});
+              getSellerData({ user_id: listings[currentIndex + 1].user_id });
             }}
             onSwipedAll={() => {
               console.log("onSwipedAll");
@@ -275,13 +275,12 @@ const Home = () => {
               //console.log('onSwipeLeft', cardIndex);
               sendInput({ swipedRight: false });
               nextListing();
-              getSellerData({user_id: listings[currentIndex+1].user_id});
+              getSellerData({ user_id: listings[currentIndex + 1].user_id });
             }}
             onSwipeTop={(cardIndex) => {
               //console.log('onSwipeTop', cardIndex);
               nextListing();
               addToCart();
-              
             }}
             OverlayLabelRight={OverlayLabelRight}
             OverlayLabelLeft={OverlayLabelLeft}
@@ -298,7 +297,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center mb-24 ">
+        <View className="flex-row justify-center items-center mb-20 mt-4 ">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {
@@ -312,7 +311,7 @@ const Home = () => {
               ref.current?.swipeRight();
             }}
           >
-            <Image source={icons.like_button} className="w-24 h-24" />
+            <Image source={icons.like_button} className="w-28 h-28" />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
