@@ -19,6 +19,7 @@ import like_button from "../assets/icons/like-button.png";
 import dislike_button from "../assets/icons/nope-button.png";
 import message_button from "../assets/icons/message-button.png";
 import cart from "../assets/icons/cart.png";
+import ruler_black from "../assets/icons/ruler-black.png";
 
 export default {
   play,
@@ -42,4 +43,5 @@ export default {
   dislike_button,
   message_button,
   cart,
+  ruler_black,
 };

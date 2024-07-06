@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Image,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { Image, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Link, router, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images, icons } from "../constants";
@@ -14,7 +7,7 @@ import { useAuth } from "../providers/AuthProvider";
 
 export default function App() {
   const { session, loading } = useAuth();
-  if (loading) {
+  if (loading){
     return <ActivityIndicator size="large" color="#FFA001" />;
   }
   if (session) {
@@ -23,9 +16,7 @@ export default function App() {
 
   return (
     <SafeAreaView className="bg-primary flex-1 ">
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
-      >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <View className="flex-1 items-center mt-16  bg-primary">
           <Image
             source={icons.logo}
@@ -38,9 +29,7 @@ export default function App() {
             how we process your data in our Privacy Policy and Cookies Policy.
           </Text>
           <TouchableOpacity className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
-            <Text className="text-white font-mregular">
-              Sign in with Apple{" "}
-            </Text>
+          <Text className="text-white font-mregular">Sign in with Apple </Text>
           </TouchableOpacity>
           <TouchableOpacity className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
             <Text className="text-white">Sign in with Google</Text>
@@ -50,7 +39,7 @@ export default function App() {
               <Text className="text-white text-lg">Sign in with Email</Text>
             </TouchableOpacity>
           </Link>
-          <Text className="text-white text-5xl mt-16 font-ps"> Tailored</Text>
+         <Text className="text-white text-5xl mt-16 font-ps"> Tailored</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

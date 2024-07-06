@@ -38,11 +38,6 @@ export default function App() {
             how we process your data in our Privacy Policy and Cookies Policy.
           </Text>
           <TouchableOpacity className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
-            <Text className="text-white font-mregular">
-              Sign in with Apple{" "}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
             <Text className="text-white">Sign in with Google</Text>
           </TouchableOpacity>
           <Link href="/sign-in" asChild>

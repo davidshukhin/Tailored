@@ -460,8 +460,8 @@ const Onboarding = () => {
             ))}
           </View>
         </View>
-        <View key="4" className="flex-1 items-center mt-16 ">
-          <Text className="text-black text-2xl font-mbold">
+        <View key="4" className="flex-1 items-center m-4">
+          <Text className="text-black text-2xl font-mbold mt-12">
             Finish building your profile
           </Text>
           <Text className="text-black text-center text-xs mt-8">
@@ -502,12 +502,14 @@ const Onboarding = () => {
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             keyboardType="email-address"
+            placeholder="Enter your username!"
           />
           <FormField
             title="Bio"
             value={form.bio}
             handleChangeText={(e) => setForm({ ...form, bio: e })}
             keyboardType="email-address"
+            placeholder="Tell us about yourself!"
           />
         </View>
       </PagerView>
