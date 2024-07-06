@@ -53,6 +53,10 @@ const UserProfileScreen = () => {
     fetchUserProfile(id as string);
   }, [id]);
 
+  useEffect(() => {
+
+  }, [following]);
+
   const fetchUserProfile = async (userId: string) => {
     const {
       data: { user },
@@ -120,7 +124,8 @@ const UserProfileScreen = () => {
             followers: followersCount || 0,
             following: followingCount || 0,
           });
-          setFollowing(isFollowing.length > 0);
+          if(isFollowing) 
+            setFollowing(isFollowing.length > 0);
         } catch (error) {
           console.log(error);
         }

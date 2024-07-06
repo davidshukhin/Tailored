@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   Image,
   TouchableOpacity,
@@ -19,6 +18,9 @@ import { icons } from "../../constants";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
 import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 const Profile = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -45,6 +47,7 @@ const Profile = () => {
     outputRange: [screenHeight * 0.3, 0],
     extrapolate: "clamp",
   });
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getUser();
@@ -126,7 +129,7 @@ const Profile = () => {
     }
 
     try {
-      let { data: listings} = await supabase
+      let { data: listings } = await supabase
         .from("listings")
         .select("*")
 
@@ -247,7 +250,7 @@ const Profile = () => {
   );
 
   const renderListingItem = ({ item }: { item }) => (
-    <TouchableOpacity onPress={() => router.replace(`/product/${item.id}`)}>
+    <TouchableOpacity onPress={() => router.replace(`/product/${item.item_id}`)}>
       <Image source={{ uri: item.imageURLS[0] }} className="w-24 h-24 m-1" />
     </TouchableOpacity>
   );
@@ -270,7 +273,8 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <View className="flex-1 bg-primary"  style={{ paddingTop: insets.top, paddingBottom: 0}}>
+    
       <View className="flex-row bg-primary">
         <TouchableOpacity onPress={handleSettings} className="ml-8">
           <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
@@ -291,24 +295,28 @@ const Profile = () => {
           </Svg>
         </TouchableOpacity>
       </View>
-      <Animated.ScrollView
+      {/* <Animated.ScrollView
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
         className="flex-1"
-      >
+      > */}
         <View className=" items-center flex-1  bg-primary">
           <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
             <View className="h-full w-full rounded-full overflow-hidden">
-              <Image
-                className="h-full w-full "
-                source={{
-                  uri: userData.profile_picture,
-                }}
-                resizeMode="cover"
-              />
+              {userData.profile_picture ? (
+                <Image
+                  className="h-full w-full "
+                  source={{
+                    uri: userData.profile_picture,
+                  }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-full w-full bg-gray-300" />
+              )}
             </View>
           </View>
 
@@ -326,7 +334,7 @@ const Profile = () => {
           </Text>
           <Text className="text-xs text-white font-mbold">{userData.bio}</Text>
 
-          <View className="flex flex-row flex-grow mt-6 space-x-20">
+          <View className="flex flex-row flex-grow mt-8 space-x-20 mb-4">
             <TouchableOpacity
               onPress={() => router.push(`/following/${userData.username}`)}
               className="flex flex-col items-center"
@@ -352,7 +360,7 @@ const Profile = () => {
           </View>
         </View>
 
-        <View className="flex-1 bg-white h-96">
+        <View className="flex-1 bg-white h-96 ">
           <View className="flex flex-row justify-around items-center h-12 bg-white">
             <TouchableOpacity onPress={() => goToPage(0)}>
               <Text
@@ -442,8 +450,8 @@ const Profile = () => {
             </View>
           </PagerView>
         </View>
-      </Animated.ScrollView>
-    </SafeAreaView>
+      {/* </Animated.ScrollView> */}
+    </View>
   );
 };
 

@@ -58,6 +58,7 @@ const Home = () => {
       await fetchListings();
       if (listings.length > 0) {
         await fetchLikes();
+        
       }
     };
     fetchData();
@@ -193,7 +194,7 @@ const Home = () => {
   const renderCard = (card) => {
     return (
       <View className="w-full h-full bg-primary shadow-lg rounded-3xl">
-        {card.imageURLS[0] ? (
+        {card && card.imageURLS && card.imageURLS[0] ? (
           <Pressable onPress={viewItem} className="flex-1">
 
           <ImageBackground
@@ -229,7 +230,7 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row justify-start p-4 items-center">
+      <View className="flex-row justify-start ml-4 mr-4 mb-4 items-center">
         <TouchableOpacity
           onPress={() => router.push(`/profile/${seller?.username}`)}
         >
@@ -240,7 +241,7 @@ const Home = () => {
                 source={{
                   uri: seller?.profile_picture,
                 }}
-                resizeMode="cover"
+                contentFit="cover"
               />
             </View>
           </View>
@@ -302,7 +303,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center items-center mb-20 mt-4 ">
+        <View className="flex-row justify-center items-center mb-16 mt-2 ">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {

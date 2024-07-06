@@ -3,10 +3,10 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  Image,
   Button,
   RefreshControl,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MasonryFlashList } from "@shopify/flash-list";
 import MasonryList from '@react-native-seoul/masonry-list';
 import { router } from "expo-router";
+import { Image } from "expo-image";
 
 const Likes = () => {
   const [likedItemIds, setLikedItemIds] = useState<string[]>([]);
@@ -21,6 +22,7 @@ const Likes = () => {
   const [loading, setLoading] = useState(true);
   const [itemToRemove, setItemToRemove] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,29 +150,28 @@ const Likes = () => {
     console.log('Rendering item:', item); // Debug log to check item data
     return (
       <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
-      <View className="m-2 p-4 bg-white rounded-2xl shadow ">
+      <View className="m-2  bg-white rounded-3xl shadow ">
         <Image
           source={{ uri: item.imageURLS[0] }}
-          className="w-full rounded-t-lg"
-          style={{ height: item.height || 200 }} // Default height if item.height is not defined
+          className="w-full rounded-3xl"
+          contentFit="cover"
+          style={{ height: 200 }} // Default height if item.height is not defined
           onError={(error) => console.log('Error loading image:', error)}
         />
-        <View className="flex-col w-full mt-2">
+        {/* <View className="flex-col w-full mt-2">
           <Text className="text-xl font-bold">{item.name}</Text>
           <Text className="text-lg text-green-600">${item.price}</Text>
-          
         </View>
         <Button
           title="Remove"
           onPress={() => {
             removeLikedItem(item.item_id);
           }}
-        />
+        /> */}
       </View>
       </TouchableOpacity>
     );
   };
-
 
   return (
     <SafeAreaView className="flex-1 items-center bg-primary">
@@ -178,6 +179,7 @@ const Likes = () => {
         {loading ? (
           <ActivityIndicator size="large" />
         ) : (
+  
           <MasonryFlashList
             data={likedItems}
             keyExtractor={(item) => item.item_id.toString()}
@@ -191,6 +193,7 @@ const Likes = () => {
             optimizeItemArrangement={true}
             overrideItemLayout={overrideItemLayout}
           />
+    
         )}
       </View>
     </SafeAreaView>

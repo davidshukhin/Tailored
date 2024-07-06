@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { Svg, Path } from "react-native-svg";
+import { Svg, Path, G } from "react-native-svg";
 import { supabase } from "../../lib/supabase";
 import CustomButton from "../../components/CustomButton";
 import { useCart } from "../../providers/CartProvider";
@@ -24,6 +24,7 @@ const Product = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const { addItem } = useCart();
   const [seller, setSeller] = useState<any>();
+  const [likes, setLikes] = useState<number>(0);
 
   useEffect(() => {
     if (id) {
@@ -34,16 +35,27 @@ const Product = () => {
   const fetchProduct = async (productId: string) => {
     setLoading(true);
     try {
-      let { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("item_id", productId)
-        .single();
+      const [
+        { data, error: productError },
+        { count: likesCount, error: likesError },
+      ] = await Promise.all([
+        await supabase
+          .from("listings")
+          .select("*")
+          .eq("item_id", productId)
+          .single(),
+        await supabase
+          .from("liked_items")
+          .select("*", { count: "exact" })
+          .eq("item_id", productId),
+      ]);
 
-      console.log(data);
-      if (error) throw error;
+      if (productError) throw productError;
+      if (likesError) throw likesError;
+
       setProduct(data);
       getSellerData(data.user_id);
+      setLikes(likesCount ?? 0);
     } catch (error) {
       console.log(error);
     } finally {
@@ -84,7 +96,7 @@ const Product = () => {
       {product ? (
         <>
           <ScrollView className="ml-5 mr-5">
-            <View className="flex-row justify-start p-4 items-center">
+            <View className="flex-row justify-start mb-4 items-center">
               <TouchableOpacity
                 onPress={() => router.push(`/profile/${seller?.username}`)}
               >
@@ -123,8 +135,8 @@ const Product = () => {
                 showsHorizontalScrollIndicator={true}
               />
               <TouchableOpacity
-                onPress={() => router.back()}
-                className="ml-4 absolute top-4"
+                onPress={() => router.push("/home")}
+                className="ml-4 absolute top-4 shadow-2xl shadow-black"
               >
                 <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
                   <Path
@@ -135,13 +147,31 @@ const Product = () => {
               </TouchableOpacity>
             </View>
             <View className="mt-4">
-              <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center justify-between container">
                 <Text className="font-mbold text-2xl">{product.name}</Text>
-                <Text className="text-xl">{product.likes}</Text>
+                <View className="flex-row items-center">
+                  <Text className="text-2xl text-primary">{likes}</Text>
+                  <Svg width="25" height="25" viewBox="0 0 24 24" fill="none">
+                    <G id="SVGRepo_iconCarrier">
+                      <Path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M12 6.00019C10.2006 3.90317 7.19377 3.2551 4.93923 5.17534C2.68468 7.09558 2.36727 10.3061 4.13778 12.5772C5.60984 14.4654 10.0648 18.4479 11.5249 19.7369C11.6882 19.8811 11.7699 19.9532 11.8652 19.9815C11.9483 20.0062 12.0393 20.0062 12.1225 19.9815C12.2178 19.9532 12.2994 19.8811 12.4628 19.7369C13.9229 18.4479 18.3778 14.4654 19.8499 12.5772C21.6204 10.3061 21.3417 7.07538 19.0484 5.17534C16.7551 3.2753 13.7994 3.90317 12 6.00019Z"
+                        stroke="#7B73D3"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </G>
+                  </Svg>
+                </View>
               </View>
               <Text className="font-mregular text-lg">{product.brand}</Text>
-              <Text className="font-mregular text-md"> ${product.price}</Text>
-              <Text className="font-mregular text-lg mt-2">
+              <Text className="font-mregular text-gray-600 text-base">
+                {" "}
+                ${product.price}
+              </Text>
+              <Text className="font-mregular text-gray-500 text-lg mt-2">
                 {" "}
                 {product.description}
               </Text>
@@ -149,27 +179,35 @@ const Product = () => {
 
               <View className="mt-4 flex-row justify-between ml-2 mr-8">
                 <View>
-                  <View className="flex-row items-center">
+                  <View className="flex-row items-center mb-2">
                     <Image
                       source={icons.ruler_black}
                       className="w-4 h-4 mr-2"
                     />
-                    <Text className="text-md text-black font-mregular">
+                    <Text className="text-sm text-black font-mregular ml-1">
                       M 34 x 32
                     </Text>
                   </View>
                   <View className="flex-row items-center">
-                    <Image
-                      source={icons.ruler_black}
-                      className="w-4 h-4 mr-2"
-                    />
-                    <Text className="text-md text-black font-mregular">
-                      Good
+                    <Svg
+                      id="Layer_1"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 64 64"
+                      enable-background="new 0 0 64 64"
+                    >
+                      <Path
+                        fill="#231F20"
+                        d="M32,0C18.746,0,8,10.746,8,24c0,5.219,1.711,10.008,4.555,13.93c0.051,0.094,0.059,0.199,0.117,0.289l16,24  C29.414,63.332,30.664,64,32,64s2.586-0.668,3.328-1.781l16-24c0.059-0.09,0.066-0.195,0.117-0.289C54.289,34.008,56,29.219,56,24  C56,10.746,45.254,0,32,0z M32,32c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S36.418,32,32,32z"
+                      />
+                    </Svg>
+                    <Text className="text-sm text-black font-mregular ml-2">
+                      Free Shipping
                     </Text>
                   </View>
                 </View>
                 <View>
-                  <View className="flex-row items-center">
+                  <View className="flex-row items-center mb-2">
                     <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                       <Path
                         d="M3.33341 13.3332C3.33361 13.188 3.34336 13.0429 3.36258 12.899C2.33508 12.3215 1.66675 11.2207 1.66675 9.99984C1.66675 8.779 2.33508 7.67817 3.36258 7.10067C3.34341 6.95567 3.33341 6.81067 3.33341 6.6665C3.33341 4.68484 5.11508 3.09317 7.10091 3.36317C7.67841 2.33484 8.77841 1.6665 10.0001 1.6665C11.2217 1.6665 12.3217 2.33484 12.8992 3.36317C14.8809 3.09317 16.6667 4.68484 16.6667 6.6665C16.6667 6.81067 16.6567 6.95567 16.6376 7.10067C17.6651 7.67817 18.3334 8.779 18.3334 9.99984C18.3334 11.2207 17.6651 12.3215 16.6376 12.899C16.6567 13.044 16.6667 13.189 16.6667 13.3332C16.6667 15.3148 14.8809 16.9032 12.8992 16.6365C12.3217 17.6648 11.2217 18.3332 10.0001 18.3332C8.77841 18.3332 7.67841 17.6648 7.10091 16.6365C5.11508 16.9032 3.33341 15.3148 3.33341 13.3332Z"
@@ -180,7 +218,7 @@ const Product = () => {
                         fill="white"
                       />
                     </Svg>
-                    <Text className="text-md text-black font-mregular ml-2">
+                    <Text className="text-sm text-black font-mregular ml-2">
                       Verified Seller
                     </Text>
                   </View>
@@ -201,18 +239,19 @@ const Product = () => {
                         stroke-linejoin="round"
                       />
                     </Svg>
-                    <Text className="text-md text-black font-mregular ml-2">
+                    <Text className="text-sm text-black font-mregular ml-2">
                       Good Condition
                     </Text>
                   </View>
                 </View>
               </View>
-
-              <CustomButton
-                title="Add to cart"
-                handlePress={addToCart}
-                containerStyles="mt-7"
-              />
+              <View className="m-4 mt-8 shadow-lg">
+                <CustomButton
+                  title="Buy"
+                  handlePress={addToCart}
+                  containerStyles="margin-top-16 shadow-lg"
+                />
+              </View>
             </View>
           </ScrollView>
         </>

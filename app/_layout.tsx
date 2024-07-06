@@ -4,7 +4,7 @@ import { Slot, SplashScreen, Stack, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import CartProvider from "../providers/CartProvider";
 import AuthProvider from "../providers/AuthProvider";
-
+import { SafeAreaProvider } from "react-native-safe-area-context";
 SplashScreen.preventAutoHideAsync();
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
@@ -29,9 +29,11 @@ const RootLayout = () => {
 
   return (
     <AuthProvider>
-    <CartProvider>
-      <Slot />
-    </CartProvider>
+      <CartProvider>
+        <SafeAreaProvider>
+          <Slot />
+        </SafeAreaProvider>
+      </CartProvider>
     </AuthProvider>
   );
 };
