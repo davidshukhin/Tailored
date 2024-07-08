@@ -95,7 +95,7 @@ const Product = () => {
     <SafeAreaView className="flex-1 bg-white">
       {product ? (
         <>
-          <ScrollView className="ml-5 mr-5">
+          <ScrollView className="ml-5 mr-5" showsVerticalScrollIndicator={false}>
             <View className="flex-row justify-start mb-4 items-center">
               <TouchableOpacity
                 onPress={() => router.push(`/profile/${seller?.username}`)}

@@ -332,35 +332,37 @@ const Profile = () => {
           <Text className="text-base font-mbold text-white mt-4">
             {userData.username}
           </Text>
-          <Text className="text-xs text-white font-mbold">{userData.bio}</Text>
+          <Text className="text-md text-white font-mbold">{userData.bio}</Text>
 
-          <View className="flex flex-row flex-grow mt-8 space-x-20 mb-4">
+          <View className="flex flex-row flex-grow mt-12 space-x-16">
             <TouchableOpacity
               onPress={() => router.push(`/following/${userData.username}`)}
               className="flex flex-col items-center"
             >
-              <Text className="text-white font-mbold">
+              <Text className="text-white text-base font-mbold">
                 {userData.followers}
               </Text>
-              <Text className="text-white font-mbold">Followers</Text>
+              <Text className="text-white text-base font-mbold">Followers</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push(`/followers/:id`)}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center "
             >
-              <Text className="text-white font-mbold">
+              <Text className="text-white text-base font-mbold">
                 {userData.following}
               </Text>
-              <Text className="text-white font-mbold">Following</Text>
+              <Text className="text-white text-base font-mbold">Following</Text>
             </TouchableOpacity>
             <View className="flex flex-col items-center">
-              <Text className="text-white font-mbold">{userData.likes}</Text>
-              <Text className="text-white font-mbold">Likes</Text>
+              <Text className="text-white text-base font-mbold">{userData.likes}</Text>
+              <Text className="text-white text-base font-mbold">Likes</Text>
             </View>
+    
           </View>
+         
         </View>
 
-        <View className="flex-1 bg-white h-96 ">
+        <View className="flex-1 bg-white">
           <View className="flex flex-row justify-around items-center h-12 bg-white">
             <TouchableOpacity onPress={() => goToPage(0)}>
               <Text
@@ -418,7 +420,7 @@ const Profile = () => {
           >
             <View key="1" className="flex-1">
               <MasonryFlashList
-                data={userData.user_photos.map((photo) => ({ uri: photo }))}
+                data={userData.user_photos.slice().reverse().map((photo) => ({ uri: photo }))}
                 renderItem={({ item }) => (
                   <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
                 )}

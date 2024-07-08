@@ -161,13 +161,13 @@ const Likes = () => {
         {/* <View className="flex-col w-full mt-2">
           <Text className="text-xl font-bold">{item.name}</Text>
           <Text className="text-lg text-green-600">${item.price}</Text>
-        </View>
+        </View> */}
         <Button
           title="Remove"
           onPress={() => {
             removeLikedItem(item.item_id);
           }}
-        /> */}
+        />
       </View>
       </TouchableOpacity>
     );
