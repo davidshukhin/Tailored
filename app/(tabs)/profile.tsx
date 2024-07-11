@@ -19,13 +19,14 @@ import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from '@react-navigation/native';
 
 const Profile = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const barPosition = useRef(new Animated.Value(0)).current;
   const [userData, setUserData] = useState({
+    user_id: "",
     username: "",
     followers: 0,
     following: 0,
@@ -48,6 +49,7 @@ const Profile = () => {
     extrapolate: "clamp",
   });
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   useEffect(() => {
     getUser();
@@ -60,9 +62,12 @@ const Profile = () => {
 
     if (user) {
       setUser(user.id);
-      getUserData(user.id);
     }
   };
+
+  useEffect(() => {
+    getUserData(user);
+  }, [user]);
 
   const getUserData = async (user_id: string) => {
     try {
@@ -110,6 +115,7 @@ const Profile = () => {
           if (likesError) throw likesError;
 
           setUserData({
+            user_id: users.user_id,
             username: users.username,
             likes: likesCount ?? 0,
             bio: users.bio,
@@ -250,7 +256,7 @@ const Profile = () => {
   );
 
   const renderListingItem = ({ item }: { item }) => (
-    <TouchableOpacity onPress={() => router.replace(`/product/${item.item_id}`)}>
+    <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
       <Image source={{ uri: item.imageURLS[0] }} className="w-24 h-24 m-1" />
     </TouchableOpacity>
   );
@@ -273,8 +279,10 @@ const Profile = () => {
   };
 
   return (
-    <View className="flex-1 bg-primary"  style={{ paddingTop: insets.top, paddingBottom: 0}}>
-    
+    <View
+      className="flex-1 bg-primary"
+      style={{ paddingTop: insets.top, paddingBottom: 0 }}
+    >
       <View className="flex-row bg-primary">
         <TouchableOpacity onPress={handleSettings} className="ml-8">
           <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
@@ -303,155 +311,158 @@ const Profile = () => {
         scrollEventThrottle={16}
         className="flex-1"
       > */}
-        <View className=" items-center flex-1  bg-primary">
-          <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
-            <View className="h-full w-full rounded-full overflow-hidden">
-              {userData.profile_picture ? (
-                <Image
-                  className="h-full w-full "
-                  source={{
-                    uri: userData.profile_picture,
-                  }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="h-full w-full bg-gray-300" />
-              )}
-            </View>
+      <View className=" items-center flex-1  bg-primary">
+        <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
+          <View className="h-full w-full rounded-full overflow-hidden">
+            {userData.profile_picture ? (
+              <Image
+                className="h-full w-full "
+                source={{
+                  uri: userData.profile_picture,
+                }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="h-full w-full bg-gray-300" />
+            )}
           </View>
+        </View>
 
+        <TouchableOpacity
+          onPress={handleEdit}
+          className="absolute shadow-md justify-center items-center mt-2"
+        >
+          <View className="h-8 w-8 bg-white rounded-full ml-28">
+            <Image source={icons.pencil} className="ml-2 mt-2" />
+          </View>
+        </TouchableOpacity>
+
+        <Text className="text-base font-mbold text-white mt-4">
+          {userData.username}
+        </Text>
+        <Text className="text-md text-white font-mbold">{userData.bio}</Text>
+
+        <View className="flex flex-row flex-grow mt-12 space-x-16">
           <TouchableOpacity
-            onPress={handleEdit}
-            className="absolute shadow-md justify-center items-center mt-2"
+            onPress={() => router.push(`/followers/${userData.user_id}`)}
+            className="flex flex-col items-center"
           >
-            <View className="h-8 w-8 bg-white rounded-full ml-28">
-              <Image source={icons.pencil} className="ml-2 mt-2" />
-            </View>
+            <Text className="text-white text-base font-mbold">
+              {userData.followers}
+            </Text>
+            <Text className="text-white text-base font-mbold">Followers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.replace(`/following/${userData.user_id}`)}
+            className="flex flex-col items-center "
+          >
+            <Text className="text-white text-base font-mbold">
+              {userData.following}
+            </Text>
+            <Text className="text-white text-base font-mbold">Following</Text>
+          </TouchableOpacity>
+          <View className="flex flex-col items-center">
+            <Text className="text-white text-base font-mbold">
+              {userData.likes}
+            </Text>
+            <Text className="text-white text-base font-mbold">Likes</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className="flex-1 bg-white">
+        <View className="flex flex-row justify-around items-center h-12 bg-white">
+          <TouchableOpacity onPress={() => goToPage(0)}>
+            <Text
+              className={`text-lg text-primary ${
+                currentPage === 0 ? "font-bold" : "font-normal"
+              }`}
+            >
+              Posts
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goToPage(1)}>
+            <Text
+              className={`text-lg text-primary ${
+                currentPage === 1 ? "font-bold" : "font-normal"
+              }`}
+            >
+              Selling
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goToPage(2)}>
+            <Text
+              className={`text-lg text-primary ${
+                currentPage === 2 ? "font-bold" : "font-normal"
+              }`}
+            >
+              Likes
+            </Text>
           </TouchableOpacity>
 
-          <Text className="text-base font-mbold text-white mt-4">
-            {userData.username}
-          </Text>
-          <Text className="text-md text-white font-mbold">{userData.bio}</Text>
-
-          <View className="flex flex-row flex-grow mt-12 space-x-16">
-            <TouchableOpacity
-              onPress={() => router.push(`/following/${userData.username}`)}
-              className="flex flex-col items-center"
-            >
-              <Text className="text-white text-base font-mbold">
-                {userData.followers}
-              </Text>
-              <Text className="text-white text-base font-mbold">Followers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push(`/followers/:id`)}
-              className="flex flex-col items-center "
-            >
-              <Text className="text-white text-base font-mbold">
-                {userData.following}
-              </Text>
-              <Text className="text-white text-base font-mbold">Following</Text>
-            </TouchableOpacity>
-            <View className="flex flex-col items-center">
-              <Text className="text-white text-base font-mbold">{userData.likes}</Text>
-              <Text className="text-white text-base font-mbold">Likes</Text>
-            </View>
-    
-          </View>
-         
+          <Animated.View
+            style={{
+              height: 4,
+              backgroundColor: "#7B73D3",
+              width: "50%",
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              transform: [
+                {
+                  translateX: barPosition.interpolate({
+                    inputRange: [0, 2],
+                    outputRange: [0, 200], // Adjust this based on your screen width
+                  }),
+                },
+              ],
+            }}
+          />
         </View>
 
-        <View className="flex-1 bg-white">
-          <View className="flex flex-row justify-around items-center h-12 bg-white">
-            <TouchableOpacity onPress={() => goToPage(0)}>
-              <Text
-                className={`text-lg text-primary ${
-                  currentPage === 0 ? "font-bold" : "font-normal"
-                }`}
-              >
-                Posts
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => goToPage(1)}>
-              <Text
-                className={`text-lg text-primary ${
-                  currentPage === 1 ? "font-bold" : "font-normal"
-                }`}
-              >
-                Selling
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => goToPage(2)}>
-              <Text
-                className={`text-lg text-primary ${
-                  currentPage === 2 ? "font-bold" : "font-normal"
-                }`}
-              >
-                Likes
-              </Text>
-            </TouchableOpacity>
+        <PagerView
+          ref={pagerViewRef}
+          style={{ flex: 1 }}
+          initialPage={0}
+          onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
+        >
+          <View key="1" className="flex-1">
+            <MasonryFlashList
+              data={userData.user_photos
+                .slice()
+                .reverse()
+                .map((photo) => ({ uri: photo }))}
+              renderItem={({ item }) => (
+                <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
+              )}
+              keyExtractor={(item, index) => index.toString()}
+              numColumns={3} // Adjust the number of columns to fit your design
+              estimatedItemSize={200}
+              //className="w-full h-full"
+            />
 
-            <Animated.View
-              style={{
-                height: 4,
-                backgroundColor: "#7B73D3",
-                width: "50%",
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                transform: [
-                  {
-                    translateX: barPosition.interpolate({
-                      inputRange: [0, 2],
-                      outputRange: [0, 200], // Adjust this based on your screen width
-                    }),
-                  },
-                ],
-              }}
+            <TouchableOpacity
+              onPress={selectImage}
+              className="absolute bottom-20 right-10"
+            >
+              <Image source={icons.plus} className="w-16 h-16" />
+            </TouchableOpacity>
+          </View>
+          <View key="2" className="flex-1">
+            <FlashList
+              data={listings}
+              renderItem={renderListingItem}
+              keyExtractor={(item, index) => index.toString()}
+              numColumns={3} // Adjust the number of columns to fit your design
+              estimatedItemSize={100}
+              className="w-full h-full"
             />
           </View>
-
-          <PagerView
-            ref={pagerViewRef}
-            style={{ flex: 1 }}
-            initialPage={0}
-            onPageSelected={(e) => handlePageChange(e.nativeEvent.position)}
-          >
-            <View key="1" className="flex-1">
-              <MasonryFlashList
-                data={userData.user_photos.slice().reverse().map((photo) => ({ uri: photo }))}
-                renderItem={({ item }) => (
-                  <Image source={{ uri: item.uri }} className="w-24 h-24 m-1" />
-                )}
-                keyExtractor={(item, index) => index.toString()}
-                numColumns={3} // Adjust the number of columns to fit your design
-                estimatedItemSize={200}
-                //className="w-full h-full"
-              />
-
-              <TouchableOpacity
-                onPress={selectImage}
-                className="absolute bottom-20 right-10"
-              >
-                <Image source={icons.plus} className="w-16 h-16" />
-              </TouchableOpacity>
-            </View>
-            <View key="2" className="flex-1">
-              <FlashList
-                data={listings}
-                renderItem={renderListingItem}
-                keyExtractor={(item, index) => index.toString()}
-                numColumns={3} // Adjust the number of columns to fit your design
-                estimatedItemSize={100}
-                className="w-full h-full"
-              />
-            </View>
-            <View key="3" className="flex-1 items-center justify-center">
-              <Text className="text-black">My Closet</Text>
-            </View>
-          </PagerView>
-        </View>
+          <View key="3" className="flex-1 items-center justify-center">
+            <Text className="text-black">My Closet</Text>
+          </View>
+        </PagerView>
+      </View>
       {/* </Animated.ScrollView> */}
     </View>
   );
