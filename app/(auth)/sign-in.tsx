@@ -23,14 +23,25 @@ const SignIn = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: form.email,
         password: form.password,
       });
-      if (error) {
+      if (error) 
         Alert.alert("Error", error.message);
+      
+      const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", data.user?.id)
+      .single();
+
+      if(userError) throw userError;
+
+     if(user.completed_onboarding) {
+        router.replace("/home")
       } else {
-        router.replace("/home");
+        router.replace("/profile-setup");
       }
     } catch (error) {
    

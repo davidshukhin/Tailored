@@ -18,8 +18,7 @@ import { icons } from "../../constants";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
 import * as ImagePicker from "expo-image-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 const Profile = () => {

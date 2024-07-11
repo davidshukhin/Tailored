@@ -18,6 +18,7 @@ import { decode } from "base64-arraybuffer";
 import { supabase } from "../../lib/supabase";
 import * as FileSystem from "expo-file-system";
 import { router } from "expo-router";
+import e from "cors";
 
 interface FormState {
   images: string[];
@@ -291,10 +292,8 @@ const Onboarding = () => {
 
   const submit = async (imageURLs: string[], profilePictureURL: string) => {
 
-   
 
-
-    const { data, error } = await supabase.from("users").insert([
+    const { data, error } = await supabase.from("users").upsert([
       {
         username: form.username,
         bio: form.bio,
@@ -302,6 +301,8 @@ const Onboarding = () => {
         user_photos: imageURLs,
         interests: selectedInterests,
         gender: gender,
+        completed_onboarding: true,
+
       },
     ]);
 

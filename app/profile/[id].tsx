@@ -3,15 +3,16 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   Image,
   TouchableOpacity,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FlashList } from "@shopify/flash-list";
 import { supabase } from "../../lib/supabase"; // Adjust the import based on your structure
 import PagerView from "react-native-pager-view";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface UserData {
   user_id: string;
@@ -42,29 +43,46 @@ const UserProfileScreen = () => {
   const [listings, setListings] = useState([] as any);
   const [likeIds, setLikeIds] = useState([] as any); // Add this line
   const [likes, setLikes] = useState([] as any);
-  const [following, setFollowing] = useState(false);
+  const [following, setFollowing] = useState<boolean>(false);
   const [user, setUser] = useState<string | null>(null);
-  const [followerCount, setFollowerCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-  const [likesCount, setLikesCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    fetchUserProfile(id as string);
+    fetchUserProfile();
   }, [id]);
 
   useEffect(() => {
+    console.log("user is following:", following);
+    console.log("user id:", profile?.user_id);
+  }, [following, user, profile]);
 
-  }, [following]);
+  useEffect(() => {
+    fetchProfileDetails(id as string);
+    
+  }, [user]);
 
-  const fetchUserProfile = async (userId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  
 
+ 
+  const fetchUserProfile = async () => {
+    const userId = id as string;
+    await fetchUserAuth(userId);
+    
+    
+    
+  };
+
+  const fetchUserAuth = async (userId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUser(user.id);
     }
+    return user;
+  };
+
+  const fetchProfileDetails = async (userId: string) => {
+  
     try {
       let { data: profile, error } = await supabase
         .from("users")
@@ -76,59 +94,10 @@ const UserProfileScreen = () => {
 
       if (profile) {
         setProfile(profile);
-        try {
-          const [
-            { count: followersCount, error: followersError },
-            { count: followingCount, error: followingError },
-            { count: likesCount, error: likesError },
-            { data: isFollowing, error: isFollowingError}
-          ] = await Promise.all([
-            supabase
-              .from("followers")
-              .select("*", { count: "exact", head: true })
-              .eq("following_id", userId),
-            supabase
-              .from("followers")
-              .select("*", { count: "exact", head: true })
-              .eq("follower_id", userId),
-            supabase
-              .from("liked_items")
-              .select(
-                `
-                item_id,
-                listings!inner (
-                  user_id
-                )
-              `,
-                { count: "exact" }
-              )
-              .eq("listings.user_id", userId),
-            supabase
-            .from("followers")
-            .select("*")
-            .eq("follower_id", user?.id)
-            .eq("following_id", profile.user_id)
-          ]);
-
-          if (followersError) throw followersError;
-          if (followingError) throw followingError;
-          if (likesError) throw likesError;
-          if (isFollowingError) throw isFollowingError;
-
-          setProfileData({
-            username: profile.username,
-            likes: likesCount || 0,
-            bio: profile.bio,
-            profile_picture: profile.profile_picture,
-            user_photos: profile.user_photos,
-            followers: followersCount || 0,
-            following: followingCount || 0,
-          });
-          if(isFollowing) 
-            setFollowing(isFollowing.length > 0);
-        } catch (error) {
-          console.log(error);
-        }
+        console.log("user" + user)
+        console.log("profile data:", profile);
+        fetchMiscData(profile);
+         console.log("profile data2:", profile);
       }
     } catch (error) {
       console.log(error);
@@ -159,16 +128,78 @@ const UserProfileScreen = () => {
     } catch (error) {
       console.log(error);
     }
-
     setLoading(false);
+    
   };
+
+  const fetchMiscData = async (profile) => {
+    try {
+      const [
+        { count: followersCount, error: followersError },
+        { count: followingCount, error: followingError },
+        { count: likesCount, error: likesError },
+        { data: isFollowing, error: isFollowingError}
+      ] = await Promise.all([
+        supabase
+          .from("followers")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", profile.user_id),
+        supabase
+          .from("followers")
+          .select("*", { count: "exact", head: true })
+          .eq("follower_id", profile.user_id),
+        supabase
+          .from("liked_items")
+          .select(
+            `
+            item_id,
+            listings!inner (
+              user_id
+            )
+          `,
+            { count: "exact" }
+          )
+          .eq("listings.user_id", profile.user_id),
+        supabase
+        .from("followers")
+        .select("*")
+        .eq("follower_id", user)
+        .eq("following_id", profile.user_id)
+      ]);
+
+      if (followersError) throw followersError;
+      if (followingError) throw followingError;
+      if (likesError) throw likesError;
+      if (isFollowingError) throw isFollowingError;
+
+      setProfileData({
+        username: profile.username,
+        likes: likesCount ?? 0,
+        bio: profile.bio,
+        profile_picture: profile.profile_picture,
+        user_photos: profile.user_photos,
+        followers: followersCount ?? 0,
+        following: followingCount ?? 0,
+      });
+     
+      if(isFollowing) 
+        setFollowing(isFollowing.length > 0);
+      console.log("isFollowing data:", isFollowing);
+
+ 
+    } catch (error) {
+      console.error(error);
+    }
+    
+   
+  }
 
   const followUser = async () => {
     if (profile) {
       try {
         const { data, error } = await supabase
           .from("followers")
-          .insert([{ follower_id: user, user_id: profile.user_id }])
+          .insert([{ follower_id: user, following_id: profile.user_id }])
           .select();
       } catch (error) {
         console.error("Error following user", error);
@@ -183,7 +214,7 @@ const UserProfileScreen = () => {
           .from("followers")
           .delete()
           .eq("follower_id", user)
-          .eq("user_id", profile.user_id);
+          .eq("following_id", profile.user_id);
       } catch (error) {
         console.error("Error unfollowing user", error);
       }
@@ -197,9 +228,10 @@ const UserProfileScreen = () => {
       await followUser();
     }
     setFollowing(!following);
+    console.log("following:", following);
   };
 
-  if (!profile) return <Text>Loading...</Text>;
+  if (!profile) return <ActivityIndicator className="flex-1 items-center" size="large"/>;
 
   const renderUserPhotoItem = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} className="w-24 h-24 m-1" />
@@ -216,9 +248,9 @@ const UserProfileScreen = () => {
     }).start();
   };
   return loading ? (
-    <Text>Loading...</Text>
+    < ActivityIndicator className="flex-1 items-center" size="large"/>
   ) : (
-    <SafeAreaView className="flex-1 bg-primary">
+    <View className="flex-1 bg-primary"  style={{ paddingTop: insets.top, paddingBottom: 0}}>
       <View className="items-center flex-1 bg-primary">
         <TouchableOpacity onPress={router.back} className="mt-4 p-2">
           <Text className="text-white">Back</Text>
@@ -263,16 +295,16 @@ const UserProfileScreen = () => {
 
         <View className="flex flex-row flex-grow mt-10 space-x-20">
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">{followingCount}</Text>
+            <Text className="text-white">{profileData.following}</Text>
             <Text className="text-white">Following</Text>
           </TouchableOpacity>
 
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">{followerCount}</Text>
+            <Text className="text-white">{profileData.followers}</Text>
             <Text className="text-white">Followers</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex flex-col items-center">
-            <Text className="text-white">{likesCount}</Text>
+            <Text className="text-white">{profileData.likes}</Text>
             <Text className="text-white">Likes</Text>
           </TouchableOpacity>
         </View>
@@ -364,7 +396,7 @@ const UserProfileScreen = () => {
           </View>
         </PagerView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,6 +1,6 @@
 import {
   View,
-  Button,
+  Button, 
   Text,
   ScrollView,
   Touchable,
@@ -9,7 +9,6 @@ import {
   ImageBackground,
   Dimensions,
   SafeAreaView,
-  Pressable,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -20,8 +19,6 @@ import { router } from "expo-router";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
-  GestureDetector,
-  Gesture,
 } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
@@ -30,11 +27,7 @@ import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { icons } from "../../constants";
 import TagBubbles from "../../components/TagBubbles";
 import { useCart } from "../../providers/CartProvider";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 interface homePrompts {
   swipedRight: boolean;
@@ -52,13 +45,11 @@ const Home = () => {
   const [seller, setSeller] = useState<any>();
   const { addItem } = useCart();
 
-
   useEffect(() => {
     const fetchData = async () => {
       await fetchListings();
       if (listings.length > 0) {
         await fetchLikes();
-        
       }
     };
     fetchData();
@@ -134,6 +125,12 @@ const Home = () => {
     }
   };
 
+  // const nextImage = () => {
+  //   setImageIndex(
+  //     (prevIndex) => (prevIndex + 1) % listings[currentIndex].imageURLS.length
+  //   );
+  // };
+
   const getSellerData = async ({ user_id }) => {
     try {
       let { data: userData, error } = await supabase
@@ -194,15 +191,13 @@ const Home = () => {
   const renderCard = (card) => {
     return (
       <View className="w-full h-full bg-primary shadow-lg rounded-3xl">
-        {card && card.imageURLS && card.imageURLS[0] ? (
-          <Pressable onPress={viewItem} className="flex-1">
-
-          <ImageBackground
-            source={{ uri: card.imageURLS[0] }}
-            className="w-full h-full "
-            imageStyle={{ borderRadius: 24 }}
-          >
-            
+        {card.imageURLS[0] ? (
+          <TouchableOpacity onPress={viewItem} className="flex-1">
+            <ImageBackground
+              source={{ uri: card.imageURLS[0] }}
+              className="w-full h-full "
+              imageStyle={{ borderRadius: 24 }}
+            >
               <View className="flex-1 justify-end p-4">
                 <Text className="text-3xl text-white font-mbold mb-2 shadow-2xl">
                   {card.name}
@@ -218,10 +213,9 @@ const Home = () => {
                   <TagBubbles size={12} tags={card.tags} />
                 </View>
               </View>
-          </ImageBackground>
-          </Pressable>
+            </ImageBackground>
+          </TouchableOpacity>
         ) : (
-          
           <Text>No Image Available</Text>
         )}
       </View>
@@ -230,7 +224,7 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row justify-start ml-4 mr-4 mb-4 items-center">
+      <View className="flex-row justify-start p-4 items-center">
         <TouchableOpacity
           onPress={() => router.push(`/profile/${seller?.username}`)}
         >
@@ -241,7 +235,7 @@ const Home = () => {
                 source={{
                   uri: seller?.profile_picture,
                 }}
-                contentFit="cover"
+                resizeMode="cover"
               />
             </View>
           </View>
@@ -303,7 +297,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center items-center mb-16 mt-2 ">
+        <View className="flex-row justify-center items-center mb-20 mt-4 ">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {

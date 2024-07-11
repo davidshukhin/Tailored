@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Slot, SplashScreen, Stack, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
@@ -13,8 +13,11 @@ const RootLayout = () => {
     PoorStory: require("../assets/fonts/PoorStory-Regular.ttf"),
   });
 
+
   const [initialRoute, setInitialRoute] = useState(null);
   const router = useRouter();
+
+
   useEffect(() => {
     if (error) throw error;
 
@@ -22,6 +25,10 @@ const RootLayout = () => {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, error]);
+
+  useEffect(() => {
+
+  }, [])
 
   if (!fontsLoaded && !error) {
     return null;
