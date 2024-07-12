@@ -235,7 +235,7 @@ const Home = () => {
                 source={{
                   uri: seller?.profile_picture,
                 }}
-                resizeMode="cover"
+                contentFit="cover"
               />
             </View>
           </View>

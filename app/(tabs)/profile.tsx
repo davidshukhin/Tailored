@@ -443,7 +443,7 @@ const Profile = () => {
 
             <TouchableOpacity
               onPress={selectImage}
-              className="absolute bottom-20 right-10"
+              className="absolute bottom-32 right-10"
             >
               <Image source={icons.plus} className="w-16 h-16" />
             </TouchableOpacity>

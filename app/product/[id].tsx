@@ -17,6 +17,8 @@ import CustomButton from "../../components/CustomButton";
 import { useCart } from "../../providers/CartProvider";
 import TagBubbles from "../../components/TagBubbles";
 import { icons } from "../../constants";
+import { useAuth } from "../../providers/AuthProvider";
+
 
 const Product = () => {
   const { id } = useLocalSearchParams();
@@ -25,6 +27,8 @@ const Product = () => {
   const { addItem } = useCart();
   const [seller, setSeller] = useState<any>();
   const [likes, setLikes] = useState<number>(0);
+  const { session } = useAuth();
+  const [ inCart, setInCart ] = useState<boolean>(false);
 
   useEffect(() => {
     if (id) {
@@ -38,6 +42,7 @@ const Product = () => {
       const [
         { data, error: productError },
         { count: likesCount, error: likesError },
+        { data: inCart, error: cartError},
       ] = await Promise.all([
         await supabase
           .from("listings")
@@ -48,18 +53,23 @@ const Product = () => {
           .from("liked_items")
           .select("*", { count: "exact" })
           .eq("item_id", productId),
+        await supabase
+        .from("cart").select("*").eq("item_id", productId).eq("user_id", session?.user.id)
+
       ]);
 
       if (productError) throw productError;
       if (likesError) throw likesError;
+      if (cartError) throw cartError;
 
       setProduct(data);
       getSellerData(data.user_id);
       setLikes(likesCount ?? 0);
+      setInCart(inCart.length > 0);
+      
     } catch (error) {
       console.log(error);
-    } finally {
-    }
+    } 
   };
 
   const getSellerData = async (user_id) => {
@@ -82,10 +92,19 @@ const Product = () => {
   };
 
   const addToCart = async () => {
-    if (!product) return;
-    addItem(product.item_id);
     console.log("Added to cart: " + product.item_id);
-  };
+    if(!inCart){
+    try {
+      const { data, error } = await supabase.from("cart").insert(
+       [ { item_id: product.item_id}]
+      ).select();
+
+      setInCart(true);
+    } catch (error) {
+      
+    } 
+  }
+  }
 
   if (loading) {
     return <ActivityIndicator size="large" color="#FFA001" />;
@@ -94,7 +113,6 @@ const Product = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {product ? (
-        <>
           <ScrollView className="ml-5 mr-5" >
             <View className="flex-row justify-start mb-4 items-center">
               <TouchableOpacity
@@ -185,7 +203,7 @@ const Product = () => {
                       className="w-4 h-4 mr-2"
                     />
                     <Text className="text-sm text-black font-mregular ml-1">
-                      M 34 x 32
+                      {product.size}
                     </Text>
                   </View>
                   <View className="flex-row items-center">
@@ -247,14 +265,13 @@ const Product = () => {
               </View>
               <View className="m-4 mt-8 shadow-lg">
                 <CustomButton
-                  title="Buy"
+                  title= {!inCart ? "Buy" : "In Cart"}
                   handlePress={addToCart}
                   containerStyles="margin-top-16 shadow-lg"
                 />
               </View>
             </View>
           </ScrollView>
-        </>
       ) : (
         <View className="flex-1 items-center ">
           <TouchableOpacity

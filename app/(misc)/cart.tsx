@@ -5,6 +5,8 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import React from "react";
 import { useCart } from "../../providers/CartProvider";
@@ -13,47 +15,78 @@ import { Svg, Path } from "react-native-svg";
 import { supabase } from "../../lib/supabase";
 import { useState, useEffect } from "react";
 import { FlashList } from "@shopify/flash-list";
+import { useAuth } from "../../providers/AuthProvider";
+
 
 type Product = {
   item_id: string;
   name: string;
   price: number;
   description: string;
-  imageURLS: string;
-  brand: string;
+  imageURLS: string[];
+  brand: string | null;
+  size: string;
 };
 const Cart = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const { items, removeItem } = useCart();
+  const { session } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    
     fetchProducts();
-  }, [items]);
+
+  }, []);
+
+  useEffect(() => {
+    console.log(products);
+  }, [products]);
 
   const fetchProducts = async () => {
-    if (items.length > 0) {
-      console.log(items);
-      try {
-        let { data, error } = await supabase
-          .from("listings")
-          .select("*")
-          .in("item_id", items);
-        if (error) throw error;
-        if (data){ setProducts(data);
-        console.log(data);}
+    try {
+      let {data, error} = await supabase.from('cart').select(`
         
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
+        listings(
+        item_id,
+        name,
+        price,
+        description,
+        size,
+        brand,
+        imageURLS)
 
-  const renderItem = ({ item }: { item: Product }) => (
+        `
+      ).eq('user_id', session?.user.id);
+
+      if (data) {
+        const mappedData = data.map((item: any) => ({
+          item_id: item.listings.item_id,
+          name: item.listings.name,
+          price: item.listings.price,
+          description: item.listings.description,
+          imageURLS: item.listings.imageURLS,
+          brand: item.listings.brand,
+          size: item.listings.size,
+        }));
+
+        setProducts(mappedData);
+        }
+      
+    } catch (error) {
+      
+    } finally{
+      setLoading(false);
+    }
+  }
+
+  const renderItem = ({ item }) => (
     <View className="flex-row p-4 bg-white m-2 rounded-lg shadow-md">
     
       <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
         <Image
-          source={{ uri: item.imageURLS[0] }}
+         source={{ uri: item.imageURLS[0] }}
           className="w-20 h-20 rounded-md"
         />
       </TouchableOpacity>
@@ -65,6 +98,12 @@ const Cart = () => {
       </View>
     </View>
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
+  };
 
   return (
     <SafeAreaView className="bg-primary">
@@ -81,15 +120,20 @@ const Cart = () => {
         </TouchableOpacity>
       </View>
       <ScrollView className="h-full">
-        {products.length > 0 ? (
+      {loading ? (
+          <ActivityIndicator size="large" className="items-center align-center justify-center"/>
+      ) : (
           <FlashList
+          key={products.length}
             data={products}
             renderItem={renderItem}
-            estimatedItemSize={100}
+            estimatedItemSize={200}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={<Text>No items in cart</Text>}
           />
-        ) : (
-          <Text>No products in the cart.</Text>
-        )}
+        ) }
       </ScrollView>
     </SafeAreaView>
   );

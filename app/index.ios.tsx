@@ -32,10 +32,14 @@ export default function App() {
         const { data, error } = await supabase
           .from('users')
           .select('completed_onboarding')
-          .eq('user_id', session.user.id);
+          .eq('user_id', session.user.id)
+          .single();
 
         if (error) throw error;
-        setHasCompletedOnboarding(data[0]?.completed_onboarding);
+
+        if(data) {
+        setHasCompletedOnboarding(data?.completed_onboarding);
+        }
       } else {
         // Fall back to local storage if not authenticated
         const value = await AsyncStorage.getItem('hasCompletedOnboarding');
