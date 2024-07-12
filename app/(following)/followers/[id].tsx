@@ -2,7 +2,11 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import React, { useEffect, useState } from "react";
 import { FlashList } from "@shopify/flash-list";
 import { supabase } from "../../../lib/supabase";
-import { router, useLocalSearchParams } from "expo-router";
+import {
+  router,
+  useLocalSearchParams,
+  useGlobalSearchParams,
+} from "expo-router";
 
 interface UserData {
   user_id: string;
@@ -11,25 +15,33 @@ interface UserData {
 }
 
 const Followers = () => {
-  const { id } = useLocalSearchParams();
+  const globalParams =useGlobalSearchParams();
+  const id = globalParams.id;
   const [usersData, setUsersData] = useState<UserData[]>([]);
 
   useEffect(() => {
-    console.log("user_id:", id as string); // Debugging log
-    fetchFollowers(id as string);
+    if (id) {
+      fetchFollowers(id as string);
+    } else {
+      console.error("No user ID provided in params");
+    }
   }, [id]);
 
   const fetchFollowers = async (id: string) => {
     try {
+    
       const { data, error } = await supabase
         .from("followers")
-        .select(`
+        .select(
+          `
           follower_id,
-          users (
-           user_id
-           
-          ) 
-        `)
+          users!followers_follower_id_fkey (
+          user_id,
+          username,
+          profile_picture
+        )
+        `
+        )
         .eq("following_id", id);
 
       if (error) {
@@ -37,21 +49,22 @@ const Followers = () => {
       }
 
       if (data) {
-        console.log(data);
-        const mappedData = data.map((item) => ({
+        
+        const mappedData = data.map((item: any) => ({
+          profile_picture: item.users.profile_picture,
           user_id: item.users.user_id,
           username: item.users.username,
-          profile_picture: item.users.profile_picture,
         }));
+       
         setUsersData(mappedData);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
-  const renderItem = ({ item }: { item: UserData }) => (
-    <View className="flex flex-row items-center justify-between p-2 bg-white shadow-md">
+  const renderItem = ({ item }) => (
+    <View className="flex flex-row items-center justify-between p-2 bg-white">
       <TouchableOpacity
         onPress={() => router.push(`/profile/${item.username}`)}
       >
@@ -63,20 +76,17 @@ const Followers = () => {
           <Text className="ml-4 text-lg">{item.username}</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity className="bg-blue-500 px-4 py-2 rounded-lg">
-        <Text className="text-white">Message</Text>
-      </TouchableOpacity>
+      
     </View>
   );
 
   return (
-    <View>
-      <Text>Followers</Text>
+    <View className="flex-1">
       <FlashList
         renderItem={renderItem}
         data={usersData}
         keyExtractor={(item) => item.user_id}
-        estimatedItemSize={300}
+        estimatedItemSize={100}
       />
     </View>
   );

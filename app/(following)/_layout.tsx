@@ -5,26 +5,53 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-
 import React, { useEffect, useState } from "react";
-import { Stack, router, useLocalSearchParams, useRouter } from "expo-router";
-
+import { Stack, router, useGlobalSearchParams, useRouter } from "expo-router";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Followers from "./followers/[id]";
 import Following from "./following/[id]";
-
 import { Path, Svg } from "react-native-svg";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../providers/AuthProvider";
 
 const FollowingLayout = () => {
   const Tab = createMaterialTopTabNavigator();
-  
+  const user = useGlobalSearchParams().id;
+  const [userName, setUserName] = useState("");
+  const {session} = useAuth();
+
+  useEffect(() => {
+    getUserData(user);
+  }, [user]);
+
+  const getUserData = async (id) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", id)
+        .single();
+
+      if (data) setUserName(data.username);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const handleRouter = () => {
+    if(user === session?.user.id){
+      router.push("/profile");
+    } else {
+      router.push(`/profile/${userName}`);
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-row items-center ">
+      <View className="flex-row items-center relative">
         <TouchableOpacity
-          onPress={() => router.push("/profile")}
-          className="ml-4"
+          onPress={() => handleRouter()}
+          style={{ position: "absolute", left: 0, padding: 10, zIndex: 1 }}
         >
           <Svg width="15" height="24" viewBox="0 0 15 24" fill="none">
             <Path
@@ -35,8 +62,8 @@ const FollowingLayout = () => {
             />
           </Svg>
         </TouchableOpacity>
-        <Text className="text-2xl ml-4 font-mregular text-center">
-          Followers
+        <Text className="flex-1 text-lg font-mregular text-center ">
+          {userName}
         </Text>
       </View>
       <Tab.Navigator>
@@ -50,7 +77,6 @@ const FollowingLayout = () => {
                   color,
                 }}
               >
-                 
                 <Text style={{ textTransform: "capitalize" }}> Followers</Text>
               </Text>
             ),
@@ -60,7 +86,6 @@ const FollowingLayout = () => {
         <Tab.Screen
           name="Following"
           component={Following}
-          
           options={{
             tabBarLabel: ({ color, focused }) => (
               <Text
