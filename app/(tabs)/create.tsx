@@ -15,6 +15,9 @@ import { supabase } from "../../lib/supabase";
 import * as ImagePicker from "expo-image-picker";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system";
+import ConditionSelectionForm from "../../components/ConditionSelectionForm";
+import SizeSelectorDropdown from "../../components/SizeSelectorDropdown";
+import SizeDropdown from "../../components/SizeDropdown";
 
 interface FormState {
   name: string;
@@ -144,23 +147,20 @@ const Create = () => {
       });
   };
 
-  return (
-    <SafeAreaView className="h-full bg-primary">
-      <ScrollView className="px-4 my-6">
-        <Text className="text-2xl text-primary font-semibold">
-          List your item
-        </Text>
+  const handleConditionSelect = (condition) => {
+    console.log("Selected condition:", condition);
+    // Here you can update your state or make an API call with the selected condition
+  };
+  const handleSizeSelect = (size) => {
+    //setSelectedSize(size);
+  };
 
-        <FormField
-          title="Name"
-          value={form.name}
-          placeholder="List your brand"
-          handleChangeText={(e) => setForm({ ...form, name: e })}
-          otherStyles={{ marginTop: 10 }}
-        />
+  return (
+    <SafeAreaView className="h-full bg-white">
+      <ScrollView className="px-4 my-6" showsVerticalScrollIndicator={false}>
         <View className="mt-7 space-y-2">
-          <Text className="text-base text-white font-semibold">
-            Upload photos
+          <Text className="text-base text-black font-mregular">
+            Upload images
           </Text>
           <TouchableOpacity onPress={selectMultipleImages}>
             {form.images.length > 0 ? (
@@ -184,12 +184,39 @@ const Create = () => {
           </TouchableOpacity>
         </View>
         <FormField
-          title="Brand"
-          value={form.brand}
-          placeholder="Brand Name"
-          handleChangeText={(e) => setForm({ ...form, brand: e })}
-          otherStyles={{ marginTop: 7 }}
+          title="Name"
+          value={form.name}
+          placeholder="Item Name"
+          handleChangeText={(e) => setForm({ ...form, name: e })}
+          otherStyles={{ marginTop: 10 }}
         />
+        <View className="flex-row items-start justify-between">
+          <View className="m-2 bg-white">
+            <ConditionSelectionForm onConditionSelect={handleConditionSelect} />
+          </View>
+          <View className="m-2 bg-white flex-1">
+            <FormField
+              title="Brand"
+              value={form.brand}
+              placeholder="Brand Name"
+              handleChangeText={(e) => setForm({ ...form, brand: e })}
+              otherStyles={{ marginTop: 10 }}
+            />
+          </View>
+        </View>
+        <View className="flex-row items-start justify-between">
+        <SizeSelectorDropdown onSizeSelect={handleSizeSelect} />
+        
+          </View>
+          <View className="mt-4 mb-4 bg-white flex-1">
+          <FormField
+          title="Tags"
+          value={form.tags}
+          placeholder="Tags"
+          handleChangeText={(e) => setForm({ ...form, tags: e })}
+          otherStyles={{ height: "1rem" }}
+        />
+            </View>
         <FormField
           title="Description"
           value={form.description}
@@ -204,13 +231,7 @@ const Create = () => {
           handleChangeText={(e) => setForm({ ...form, color: e })}
           otherStyles={{ marginTop: 7 }}
         />
-        <FormField
-          title="Tags"
-          value={form.tags}
-          placeholder="Tags"
-          handleChangeText={(e) => setForm({ ...form, tags: e })}
-          otherStyles={{ marginTop: 7 }}
-        />
+       
 
         <CustomButton
           title="List item"

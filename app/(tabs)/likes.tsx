@@ -198,7 +198,7 @@ const Likes = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center bg-primary">
+    <SafeAreaView className="flex-1 items-center bg-white">
       <View className="h-full w-full m-2">
         {loading ? (
           <ActivityIndicator size="large" />

@@ -311,7 +311,7 @@ const Profile = () => {
         scrollEventThrottle={16}
         className="flex-1"
       > */}
-      <View className=" items-center flex-1  bg-primary">
+      <View className=" items-center  bg-primary">
         <View className="h-44 w-44 mt-2 rounded-full overflow-hidden border-4 border-gray-200 p-0.5">
           <View className="h-full w-full rounded-full overflow-hidden">
             {userData.profile_picture ? (
@@ -342,7 +342,7 @@ const Profile = () => {
         </Text>
         <Text className="text-md text-white font-mbold">{userData.bio}</Text>
 
-        <View className="flex flex-row flex-grow mt-12 space-x-16">
+        <View className="flex flex-row flex-grow my-6 space-x-16">
           <TouchableOpacity
             onPress={() => router.push(`/followers/${userData.user_id}`)}
             className="flex flex-col items-center"
