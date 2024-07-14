@@ -28,6 +28,7 @@ import { icons } from "../../constants";
 import TagBubbles from "../../components/TagBubbles";
 import { useCart } from "../../providers/CartProvider";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useAuth } from "../../providers/AuthProvider";
 
 interface homePrompts {
   swipedRight: boolean;
@@ -44,6 +45,7 @@ const Home = () => {
   const cardHeight = cardWidth * 1.5;
   const [seller, setSeller] = useState<any>();
   const { addItem } = useCart();
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,20 +154,20 @@ const Home = () => {
   };
 
   const OverlayLabelRight = () => (
-    <View className="absolute bg-green-500  rounded w-full h-full">
-      <Text className="text-white text-3xl">Like</Text>
-    </View>
+    <View className="absolute bg-green-500 rounded-3xl w-full h-full flex justify-center items-center">
+    <Text className="text-white text-3xl font-mbold">🎉 Liked! 🎉</Text>
+  </View>
   );
 
   const OverlayLabelLeft = () => (
-    <View className="absolute top-4 left-4 bg-red-500 p-2 rounded">
-      <Text className="text-white text-3xl">NOPE</Text>
+    <View className="absolute bg-red-500 rounded-3xl w-full h-full flex justify-center items-center">
+    <Text className="text-white text-3xl font-mbold">🗑️ Nope! 🗑️</Text>
     </View>
   );
 
   const OverlayLabelTop = () => (
-    <View className="absolute top-4 bg-blue-500 p-2 rounded">
-      <Text className="text-white text-lg">SUPER LIKE</Text>
+    <View className="absolute bg-blue-500 rounded-3xl w-full h-full flex justify-center items-center">
+      <Text className="text-white text-3xl font-mbold">🛒 Cart 🛒</Text>
     </View>
   );
 
@@ -184,8 +186,14 @@ const Home = () => {
 
   const addToCart = async () => {
     if (!listings[currentIndex]) return;
-    addItem(listings[currentIndex].item_id);
-    console.log("Added to cart: " + listings[currentIndex].item_id);
+    let { data } = await supabase
+    .from("cart")
+    .insert([
+      {
+        item_id: listings[currentIndex].item_id
+      },
+    ]);
+   
   };
 
   const renderCard = (card) => {
@@ -272,13 +280,11 @@ const Home = () => {
               console.log("onSwipedAll");
             }}
             onSwipeLeft={(cardIndex) => {
-              //console.log('onSwipeLeft', cardIndex);
               sendInput({ swipedRight: false });
               nextListing();
               getSellerData({ user_id: listings[currentIndex + 1].user_id });
             }}
             onSwipeTop={(cardIndex) => {
-              //console.log('onSwipeTop', cardIndex);
               nextListing();
               addToCart();
             }}
@@ -286,13 +292,10 @@ const Home = () => {
             OverlayLabelLeft={OverlayLabelLeft}
             OverlayLabelTop={OverlayLabelTop}
             onSwipeActive={() => {
-              //console.log('onSwipeActive');
             }}
             onSwipeStart={() => {
-              //console.log('onSwipeStart');
             }}
             onSwipeEnd={() => {
-              //console.log('onSwipeEnd');
             }}
           />
         </View>

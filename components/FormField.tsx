@@ -22,11 +22,11 @@ const FormField: React.FC<FromFieldProps> = ({
 
   return (
     <View className={`space-y-2 ${otherStyles}`}>
-      <Text className="text-base text-black font-mregular">{title}</Text>
+      <Text className="text-base text-black font-mbold">{title}</Text>
 
       <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-gray-300 focus:border-black flex flex-row items-center">
         <TextInput
-          className="flex-1 text-black font-psemibold text-base"
+          className="flex-1 text-black font-mregular text-base"
           value={value}
           placeholder={placeholder}
           placeholderTextColor="#7B7B8B"

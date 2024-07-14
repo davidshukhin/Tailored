@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
   Button,
   RefreshControl,
@@ -199,6 +198,7 @@ const Likes = () => {
 
   return (
     <SafeAreaView className="flex-1 items-center bg-white">
+      <Text className="text-2xl font-mbold text-black mt-4">Likes</Text>
       <View className="h-full w-full m-2">
         {loading ? (
           <ActivityIndicator size="large" />

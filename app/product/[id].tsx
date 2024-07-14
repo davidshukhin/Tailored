@@ -7,14 +7,12 @@ import {
   FlatList,
   Image,
   ScrollView,
-  Button,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Svg, Path, G } from "react-native-svg";
 import { supabase } from "../../lib/supabase";
 import CustomButton from "../../components/CustomButton";
-import { useCart } from "../../providers/CartProvider";
 import TagBubbles from "../../components/TagBubbles";
 import { icons } from "../../constants";
 import { useAuth } from "../../providers/AuthProvider";
@@ -24,7 +22,6 @@ const Product = () => {
   const { id } = useLocalSearchParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const { addItem } = useCart();
   const [seller, setSeller] = useState<any>();
   const [likes, setLikes] = useState<number>(0);
   const { session } = useAuth();
@@ -80,7 +77,7 @@ const Product = () => {
         .eq("user_id", user_id)
         .single();
 
-      console.log(userData);
+      if (error) throw error;
       if (userData) {
         console.log("Seller Data", userData);
         setSeller(userData);
@@ -112,8 +109,21 @@ const Product = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <View className="h-14 bg-white">
+       <TouchableOpacity
+                onPress={() => router.push("/home")}
+                className="ml-4 absolute top-4 shadow-2xl shadow-black"
+              >
+                <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+                  <Path
+                    d="M26.25 13.75H8.01748L14.6337 7.13371L12.8662 5.36621L3.23248 15L12.8662 24.6337L14.6337 22.8662L8.01748 16.25H26.25V13.75Z"
+                    fill="black"
+                  />
+                </Svg>
+              </TouchableOpacity>
+              </View>
       {product ? (
-          <ScrollView className="ml-5 mr-5" >
+          <ScrollView className="ml-5 mr-5" showsVerticalScrollIndicator={false}>
             <View className="flex-row justify-start mb-4 items-center">
               <TouchableOpacity
                 onPress={() => router.push(`/profile/${seller?.username}`)}
@@ -152,17 +162,7 @@ const Product = () => {
                 horizontal
                 showsHorizontalScrollIndicator={true}
               />
-              <TouchableOpacity
-                onPress={() => router.push("/home")}
-                className="ml-4 absolute top-4 shadow-2xl shadow-black"
-              >
-                <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-                  <Path
-                    d="M26.25 13.75H8.01748L14.6337 7.13371L12.8662 5.36621L3.23248 15L12.8662 24.6337L14.6337 22.8662L8.01748 16.25H26.25V13.75Z"
-                    fill="white"
-                  />
-                </Svg>
-              </TouchableOpacity>
+             
             </View>
             <View className="mt-4">
               <View className="flex-row items-center justify-between container">

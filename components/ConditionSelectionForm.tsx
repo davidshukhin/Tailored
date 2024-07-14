@@ -16,7 +16,7 @@ const ConditionSelectionForm = ({ onConditionSelect }) => {
 
   return (
     <View className=" bg-white rounded-lg ">
-      <Text className="text-base font-mregular mb-4">Item Condition</Text>
+      <Text className="text-base font-mbold mb-4">Item Condition</Text>
       <View className="flex-row justify-between">
       {conditions.map((condition) => (
         <TouchableOpacity
