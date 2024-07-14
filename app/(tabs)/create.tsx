@@ -396,7 +396,7 @@ const Create = () => {
           otherStyles={{ marginTop: 10 }}
         />
         <View className="flex-row items-start justify-between">
-          <View className="m-2 bg-white">
+          <View className="mt-2 bg-white">
             <ConditionSelectionForm onConditionSelect={handleConditionSelect} />
           </View>
           <View className="m-2 bg-white flex-1">
@@ -426,7 +426,7 @@ const Create = () => {
                 Add tags (max 4){" "}
               </Text>
               <TextInput
-                className="h-14 border-2 border-gray-300 p-4 rounded-xl w-60"
+                className="h-14 border-2 border-gray-300 p-4 rounded-xl w-60 "
                 value={inputValue}
                 onChangeText={handleInputChange}
                 onBlur={handleBlur}

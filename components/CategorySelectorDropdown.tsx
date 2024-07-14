@@ -53,7 +53,7 @@ const CategorySelectorDropdown = ({ onSubcategorySelect, label }) => {
         onPress={() => setModalVisible(true)}
         className="w-full h-14 px-4 bg-black-100 rounded-2xl border-2 border-gray-300 focus:border-black flex flex-row items-center justify-between"
       >
-        <Text className="text-base font-mregular text-gray-400">
+        <Text className="text-base font-mregular text-gray-500">
           {selectedSubcategory ? selectedSubcategory : 'Choose a category'}
         </Text>
         <Text className="text-gray-500">▼</Text>

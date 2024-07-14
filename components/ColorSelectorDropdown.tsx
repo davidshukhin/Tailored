@@ -30,7 +30,7 @@ const ColorSelectorDropdown: React.FC<ColorSelectorDropdownProps> = ({ onColorSe
         onPress={() => setModalVisible(true)}
         className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-gray-300 focus:border-black flex flex-row items-center"
       >
-        <Text className="text-base font-mregular text-gray-400">
+        <Text className="text-base font-mregular text-gray-500">
           {selectedColors.length > 0 ? selectedColors.join(', ') : 'Choose up to 2'}
         </Text>
         <Text className="text-gray-500">▼</Text>

@@ -2246,6 +2246,16 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.2.tgz#821f8442f4175d8f0467b9daf26e3a18e2d02af2"
   integrity sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==
 
+"@stripe/connect-js@^3.3.10":
+  version "3.3.10"
+  resolved "https://registry.yarnpkg.com/@stripe/connect-js/-/connect-js-3.3.10.tgz#266c37b4feb81fc70877252936d71febd45429d0"
+  integrity sha512-x/z7BUnJXuUq0eLLzfL7NusxnsEYcGGzS46JTXwmdcFS9xYCWJJTI+9kgEROfXaZuD2RVOUw6RIu/l8YvsEijw==
+
+"@stripe/react-connect-js@^3.3.10":
+  version "3.3.10"
+  resolved "https://registry.yarnpkg.com/@stripe/react-connect-js/-/react-connect-js-3.3.10.tgz#36f2f0ff831cc38bce68dc56e56d1302b61b53f3"
+  integrity sha512-GR8SdX3R7Wgyrisq+23XJjYbein8LZyiJNbe2v+YolKF+XafrhL7W1NzwJs1isajzpe9ma72qY7cJg92bT0sow==
+
 "@stripe/stripe-react-native@^0.38.0":
   version "0.38.0"
   resolved "https://registry.yarnpkg.com/@stripe/stripe-react-native/-/stripe-react-native-0.38.0.tgz#e91f897b6a50899274ff631027d2b3411e631583"
@@ -10065,10 +10075,10 @@ strip-json-comments@~2.0.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz"
   integrity sha512-4gB8na07fecVVkOI6Rs4e7T6NOTki5EmL7TUduTs6bu3EdnSycntVJ4re8kgZA+wx9IueI2Y11bfbgwtzuE0KQ==
 
-stripe@^15.12.0:
-  version "15.12.0"
-  resolved "https://registry.npmjs.org/stripe/-/stripe-15.12.0.tgz"
-  integrity sha512-slTbYS1WhRJXVB8YXU8fgHizkUrM9KJyrw4Dd8pLEwzKHYyQTIE46EePC2MVbSDZdE24o1GdNtzmJV4PrPpmJA==
+stripe@13.4.0:
+  version "13.4.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-13.4.0.tgz#5ac9cb412c70eb647ebebd7da3b849f2a098a980"
+  integrity sha512-UxvRzu46AJALIueMH3/jn++qJlOoM5s+uoHXagr36xTFOj7Knrh28WFiI73dMDkngBElK68cG3WI+LgRulHw6g==
   dependencies:
     "@types/node" ">=8.1.0"
     qs "^6.11.0"
