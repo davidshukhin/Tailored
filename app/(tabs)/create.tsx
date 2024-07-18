@@ -7,8 +7,9 @@ import {
   ScrollView,
   Alert,
   TextInput,
+  Button,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { supabase } from "../../lib/supabase";
@@ -21,6 +22,14 @@ import CategorySelectorDropdown from "../../components/CategorySelectorDropdown"
 import ColorSelectorDropdown from "../../components/ColorSelectorDropdown";
 import { Svg, Path } from "react-native-svg";
 import { icons } from "../../constants";
+import { useStripeConnect } from "../../hooks/useStripeConnect";
+import * as WebBrowser from "expo-web-browser";
+import {
+  ConnectAccountOnboarding,
+  ConnectComponentsProvider,
+} from "@stripe/react-connect-js";
+import { useAuth } from "../../providers/AuthProvider";
+import { router } from "expo-router";
 
 interface FormState {
   name: string;
@@ -48,6 +57,8 @@ const initialFormState: FormState = {
 
 const Create = () => {
   const [uploading, setUploading] = useState(false);
+  const [accountUpdatePending, setAccountUpdatePending] = useState(false);
+  const [connectedAccountUpdated, setConnectedAccountUpdated] = useState(false);
   const [form, setForm] = useState<FormState>(initialFormState);
   const [size, setSize] = useState<string>("");
   const [sizeSelection, setSizeSelection] = useState<string[]>([]);
@@ -55,6 +66,14 @@ const Create = () => {
   const [price, setPrice] = useState<string>("");
   const [inputValue, setInputValue] = useState("");
   const [tagsList, setTagsList] = useState<string[]>([]);
+  const [isSeller, setIsSeller] = useState<boolean>();
+  const [accountCreatePending, setAccountCreatePending] = useState(false);
+  const [onboardingExited, setOnboardingExited] = useState(false);
+  const [error, setError] = useState(false);
+  const [connectedAccountId, setConnectedAccountId] = useState();
+  const stripeConnectInstance = useStripeConnect(connectedAccountId);
+  const [isLoading, setIsLoading] = useState(true);
+  const { session } = useAuth();
   const clothingColors = [
     "Black",
     "White",
@@ -87,6 +106,33 @@ const Create = () => {
     "Bronze",
     "Copper",
   ];
+
+  useEffect(() => {
+    checkSellerStatus();
+  }, []);
+
+  const checkSellerStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("sellers")
+        .select("*")
+        .eq("user_id", session?.user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.length > 0) {
+        setIsSeller(true);
+      } else {
+        setIsSeller(false);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const resetPage = () => {
     setForm(initialFormState);
@@ -266,7 +312,7 @@ const Create = () => {
         setSizeSelection(["XS", "S", "M", "L", "XL", "XXL", "OS"]);
       }
       //handle womens
-    } else if(gender === "Womenswear") {
+    } else if (gender === "Womenswear") {
       if (category === "Footwear") {
         setSizeSelection([
           "US 3",
@@ -354,6 +400,111 @@ const Create = () => {
     );
   };
 
+  
+  // change to !accountCreatePending for proper funcionality. This is just for demo
+  if (!connectedAccountId && !isSeller) {
+    return (
+      
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-2xl font-mbold">
+          You need to be a seller to list items
+        </Text>
+        
+     
+        {!accountCreatePending && (
+        <TouchableOpacity
+                  className="bg-green-500 p-3 rounded"
+                  onPress={async () => {
+                    setAccountCreatePending(true);
+                    setError(false);
+                    fetch("http://localhost:4242/account", {
+                      method: "POST",
+                    })
+                      .then((response) => response.json())
+                      .then((json) => {
+                        setAccountCreatePending(false);
+                        const { account, error } = json;
+
+                        if (account) {
+                          setConnectedAccountId(account);
+                        }
+                        console.log(account);
+                        if (error) {
+                          setError(true);
+                        }
+                      });
+                  }}
+                >
+                  <Text className="text-white text-center font-semibold">
+                    Sign Up
+                  </Text>
+                </TouchableOpacity>
+        )}
+       
+        
+      </View>
+    );
+  }
+
+
+  if(connectedAccountId && !isSeller){
+
+  return (
+    <SafeAreaView className="flex-1">
+      <Text className="text-lg font-semibold mb-2">
+        Add information to start accepting money
+      </Text>
+      <Text className="mb-4">
+        Tailored partners with Stripe to help you receive payments while
+        keeping your personal and bank details secure.
+      </Text>
+      {!accountUpdatePending && !connectedAccountUpdated && (
+        <TouchableOpacity
+          className="bg-blue-500 p-3 rounded mb-4"
+          onPress={async () => {
+            setError(false);
+            console.log(
+              "Sending request to:",
+              `http://localhost:4242/account_links/${connectedAccountId}`
+            );
+            fetch(`http://localhost:4242/account_links/`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                account: { connectedAccountId },
+              }),
+            })
+              .then((response) => response.json())
+              .then((json) => {
+                console.log("Response data:", json);
+                const { link, error } = json;
+
+                if (link) {
+                  console.log("Opening onboarding link:", link.url);
+                  WebBrowser.openBrowserAsync(link.url).catch((err) =>
+                    console.error("An error occurred", err)
+                  );
+                  setIsSeller(true)
+                }
+
+                if (error) {
+                  setError(true);
+                }
+              });
+          }}
+        >
+          <Text className="text-white text-center font-semibold">
+            Add Info
+          </Text>
+        </TouchableOpacity>
+      )}
+    
+    </SafeAreaView>
+  )}
+
+
   if (uploading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -362,157 +513,165 @@ const Create = () => {
     );
   }
 
-  return (
-    <SafeAreaView className="h-full bg-white">
-      <ScrollView className="px-4 my-6" showsVerticalScrollIndicator={false}>
-        <View className="mt-7 space-y-2">
-          <Text className="text-base text-black font-mbold">Upload images</Text>
-          <TouchableOpacity onPress={selectMultipleImages}>
-            {form.images.length > 0 ? (
-              <ScrollView horizontal>
-                {form.images.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: image }}
-                    className="w-32 h-32 mr-2 rounded-2xl"
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl justify-center items-center">
-                <View className="w-14 h-14 border border-dashed border-secondary-100 justify-center items-center">
-                  <Text className="text-xl">+</Text>
+
+  if (isSeller) {
+    return (
+      <SafeAreaView className="h-full bg-white">
+        <ScrollView className="px-4 my-6" showsVerticalScrollIndicator={false}>
+          <View className="mt-7 space-y-2">
+            <Text className="text-base text-black font-mbold">
+              Upload images
+            </Text>
+            <TouchableOpacity onPress={selectMultipleImages}>
+              {form.images.length > 0 ? (
+                <ScrollView horizontal>
+                  {form.images.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: image }}
+                      className="w-32 h-32 mr-2 rounded-2xl"
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
+              ) : (
+                <View className="w-full h-16 px-4 bg-black-100 rounded-2xl justify-center items-center">
+                  <View className="w-14 h-14 border border-dashed border-secondary-100 justify-center items-center">
+                    <Text className="text-xl">+</Text>
+                  </View>
                 </View>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        <FormField
-          title="Name"
-          value={form.name}
-          placeholder="Item Name"
-          handleChangeText={(e) => setForm({ ...form, name: e })}
-          otherStyles={{ marginTop: 10 }}
-        />
-        <View className="flex-row items-start justify-between">
-          <View className="mt-2 bg-white">
-            <ConditionSelectionForm onConditionSelect={handleConditionSelect} />
-          </View>
-          <View className="m-2 bg-white flex-1">
-            <FormField
-              title="Brand"
-              value={form.brand}
-              placeholder="Brand Name"
-              handleChangeText={(e) => setForm({ ...form, brand: e })}
-              otherStyles={{ marginTop: 10 }}
-            />
-          </View>
-        </View>
-        <View className="flex-row items-start justify-between mr-2">
-          <CategorySelectorDropdown
-            label={"Choose category"}
-            onSubcategorySelect={handleCategorySelect}
-          />
-          <SizeSelectorDropdown
-            onSizeSelect={handleSizeSelect}
-            sizes={sizeSelection}
-          />
-        </View>
-        <View className="mt-4 mb-4 bg-white ">
-          <View className="flex-row mb-2 justify-between">
-            <View>
-              <Text className="text-base text-black font-mbold mb-2">
-                Add tags (max 4){" "}
-              </Text>
-              <TextInput
-                className="h-14 border-2 border-gray-300 p-4 rounded-xl w-60 "
-                value={inputValue}
-                onChangeText={handleInputChange}
-                onBlur={handleBlur}
-                placeholder="Add up to 4 tags"
-              />
-            </View>
-            <TouchableOpacity
-              className="justify-center mt-8 items-center right-16"
-              onPress={handleAddTag}
-            >
-              <Image source={icons.plus} className="w-10 h-10" />
+              )}
             </TouchableOpacity>
           </View>
-
-          <View className="flex-row flex-wrap items-center mt-2">
-            {tagsList.map((tag, index) => (
-              <View
-                key={index}
-                className="bg-secondary rounded-3xl py-1 px-3 m-1"
-              >
-                <Text className="font-mbold text-primary">#{tag}</Text>
-                <TouchableOpacity
-                  className="absolute right-0 top-0"
-                  onPress={() => handleRemoveTag(index)}
-                >
-                  <Svg
-                    width="20px"
-                    height="20px"
-                    viewBox="0 0 1024 1024"
-                    fill="#000000"
-                  >
-                    <Path
-                      d="M512 897.6c-108 0-209.6-42.4-285.6-118.4-76-76-118.4-177.6-118.4-285.6 0-108 42.4-209.6 118.4-285.6 76-76 177.6-118.4 285.6-118.4 108 0 209.6 42.4 285.6 118.4 157.6 157.6 157.6 413.6 0 571.2-76 76-177.6 118.4-285.6 118.4z m0-760c-95.2 0-184.8 36.8-252 104-67.2 67.2-104 156.8-104 252s36.8 184.8 104 252c67.2 67.2 156.8 104 252 104 95.2 0 184.8-36.8 252-104 139.2-139.2 139.2-364.8 0-504-67.2-67.2-156.8-104-252-104z"
-                      fill=""
-                    />
-                    <Path
-                      d="M707.872 329.392L348.096 689.16l-31.68-31.68 359.776-359.768z"
-                      fill=""
-                    />
-                    <Path d="M328 340.8l32-31.2 348 348-32 32z" fill="" />
-                  </Svg>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View className="flex-row items-start justify-between mb-2">
-          <View className=" bg-white flex-1">
-            <ColorSelectorDropdown
-              onColorSelect={(e) => setForm({ ...form, color: e })}
-              colors={clothingColors}
-            />
-          </View>
-          <View className=" bg-white ml-4 flex-1 ">
-            <Text className="text-base font-mbold mb-2 mt-4">
-              Enter Item Price
-            </Text>
-            <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-gray-300 focus:border-black flex flex-row items-center">
-              <Text className="mr-10 text-base font-mregular">$</Text>
-              <TextInput
-                className="font-mregular text-base flex-1"
-                placeholder="00.00"
-                keyboardType="numeric"
-                onChangeText={handlePriceChange}
-                value={price}
+          <FormField
+            title="Name"
+            value={form.name}
+            placeholder="Item Name"
+            handleChangeText={(e) => setForm({ ...form, name: e })}
+            otherStyles={{ marginTop: 10 }}
+          />
+          <View className="flex-row items-start justify-between">
+            <View className="mt-2 bg-white">
+              <ConditionSelectionForm
+                onConditionSelect={handleConditionSelect}
+              />
+            </View>
+            <View className="m-2 bg-white flex-1">
+              <FormField
+                title="Brand"
+                value={form.brand}
+                placeholder="Brand Name"
+                handleChangeText={(e) => setForm({ ...form, brand: e })}
+                otherStyles={{ marginTop: 10 }}
               />
             </View>
           </View>
-        </View>
-        <FormField
-          title="Description"
-          value={form.description}
-          placeholder="Item description"
-          handleChangeText={(e) => setForm({ ...form, description: e })}
-          otherStyles={{ marginTop: 7 }}
-        />
-        <View className="mb-16">
-        <CustomButton
-          title="List item"
-          handlePress={handleListItem}
-          isLoading={uploading}
-        />
-        </ View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+          <View className="flex-row items-start justify-between mr-2">
+            <CategorySelectorDropdown
+              label={"Choose category"}
+              onSubcategorySelect={handleCategorySelect}
+            />
+            <SizeSelectorDropdown
+              onSizeSelect={handleSizeSelect}
+              sizes={sizeSelection}
+            />
+          </View>
+          <View className="mt-4 mb-4 bg-white ">
+            <View className="flex-row mb-2 justify-between">
+              <View>
+                <Text className="text-base text-black font-mbold mb-2">
+                  Add tags (max 4){" "}
+                </Text>
+                <TextInput
+                  className="h-14 border-2 border-gray-300 p-4 rounded-xl w-60 "
+                  value={inputValue}
+                  onChangeText={handleInputChange}
+                  onBlur={handleBlur}
+                  placeholder="Add up to 4 tags"
+                />
+              </View>
+              <TouchableOpacity
+                className="justify-center mt-8 items-center right-16"
+                onPress={handleAddTag}
+              >
+                <Image source={icons.plus} className="w-10 h-10" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row flex-wrap items-center mt-2">
+              {tagsList.map((tag, index) => (
+                <View
+                  key={index}
+                  className="bg-secondary rounded-3xl py-1 px-3 m-1"
+                >
+                  <Text className="font-mbold text-primary">#{tag}</Text>
+                  <TouchableOpacity
+                    className="absolute right-0 top-0"
+                    onPress={() => handleRemoveTag(index)}
+                  >
+                    <Svg
+                      width="20px"
+                      height="20px"
+                      viewBox="0 0 1024 1024"
+                      fill="#000000"
+                    >
+                      <Path
+                        d="M512 897.6c-108 0-209.6-42.4-285.6-118.4-76-76-118.4-177.6-118.4-285.6 0-108 42.4-209.6 118.4-285.6 76-76 177.6-118.4 285.6-118.4 108 0 209.6 42.4 285.6 118.4 157.6 157.6 157.6 413.6 0 571.2-76 76-177.6 118.4-285.6 118.4z m0-760c-95.2 0-184.8 36.8-252 104-67.2 67.2-104 156.8-104 252s36.8 184.8 104 252c67.2 67.2 156.8 104 252 104 95.2 0 184.8-36.8 252-104 139.2-139.2 139.2-364.8 0-504-67.2-67.2-156.8-104-252-104z"
+                        fill=""
+                      />
+                      <Path
+                        d="M707.872 329.392L348.096 689.16l-31.68-31.68 359.776-359.768z"
+                        fill=""
+                      />
+                      <Path d="M328 340.8l32-31.2 348 348-32 32z" fill="" />
+                    </Svg>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+          <View className="flex-row items-start justify-between mb-2">
+            <View className=" bg-white flex-1">
+              <ColorSelectorDropdown
+                onColorSelect={(e) => setForm({ ...form, color: e })}
+                colors={clothingColors}
+              />
+            </View>
+            <View className=" bg-white ml-4 flex-1 ">
+              <Text className="text-base font-mbold mb-2 mt-4">
+                Enter Item Price
+              </Text>
+              <View className="w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-gray-300 focus:border-black flex flex-row items-center">
+                <Text className="mr-10 text-base font-mregular">$</Text>
+                <TextInput
+                  className="font-mregular text-base flex-1"
+                  placeholder="00.00"
+                  keyboardType="numeric"
+                  onChangeText={handlePriceChange}
+                  value={price}
+                />
+              </View>
+            </View>
+          </View>
+        
+          <FormField
+            title="Description"
+            value={form.description}
+            placeholder="Item description"
+            handleChangeText={(e) => setForm({ ...form, description: e })}
+            otherStyles={{ marginTop: 7 }}
+          />
+          <View className="mb-16">
+            <CustomButton
+              title="List item"
+              handlePress={handleListItem}
+              isLoading={uploading}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 };
 
 export default Create;
