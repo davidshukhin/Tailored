@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import {
   router,
@@ -8,6 +15,8 @@ import {
 } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../providers/AuthProvider";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Svg, Path, G } from "react-native-svg";
 
 const API_URL = "http://localhost:4242"; // Replace with your actual API URL
 
@@ -19,20 +28,15 @@ export default function CheckoutScreen() {
   const { session } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [seller, setSeller] = useState<any>(null);
+  const [name, setName] = useState<string>(""); 
   const [customerId, setCustomerId] = useState<any>(null);
   useEffect(() => {
     fetchProduct();
-
-    console.log(id);
   }, [id]);
 
   useEffect(() => {
     initializePaymentSheet();
   }, [seller]);
-
-  useEffect(() => {
-    console.log("Customer ID updated", customerId);
-  }, [customerId]);
 
   const fetchProduct = async () => {
     setLoading(true);
@@ -70,23 +74,28 @@ export default function CheckoutScreen() {
       const [
         { data: sellerData, error: sellerError },
         { data: userData, error: userError },
+        { data: nameData, error: nameError },
       ] = await Promise.all([
         supabase.from("sellers").select("*").eq("user_id", user_id).single(),
         supabase
           .from("users")
           .select("stripe_customer_id")
           .eq("user_id", session?.user.id),
+        supabase.from("users").select("name").eq("user_id", user_id).single(),
       ]);
 
       if (sellerError) throw sellerError;
       if (userError) throw userError;
+      if (nameError) throw nameError
 
       if (userData) {
         setCustomerId(userData);
       }
       if (sellerData) {
-        console.log("Seller Data", sellerData);
         setSeller(sellerData);
+      }
+      if (nameData) {
+        setName(nameData.name);
       }
     } catch (error) {
       console.log(error);
@@ -94,35 +103,32 @@ export default function CheckoutScreen() {
   };
 
   const updateUser = async (customer) => {
-    
     const { data, error } = await supabase
-      .from('users')
+      .from("users")
       .update({ stripe_customer_id: customer })
-      .eq('user_id', session?.user.id)
+      .eq("user_id", session?.user.id)
       .select();
-  }
- 
+  };
+
   const fetchPaymentSheetParams = async () => {
     const connectedAccountId = String(seller.stripe_id);
-    console.log("Connected Account ID befp fetch", customerId);
     const response = await fetch("http://localhost:4242/payment-sheet", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-      }, 
+      },
       body: JSON.stringify({
         customerId: customerId,
         price: product.price,
         connectedAccountId: connectedAccountId,
-      }), 
+      }),
     });
     const { paymentIntent, ephemeralKey, customer } = await response.json();
     if (typeof customerId != "string") {
-      console.log("Customer ID nice", customer);
       setCustomerId(customer);
       updateUser(customer);
     }
-   
+
     return {
       paymentIntent,
       ephemeralKey,
@@ -131,7 +137,6 @@ export default function CheckoutScreen() {
   };
 
   const initializePaymentSheet = async () => {
-    
     const {
       paymentIntent,
       ephemeralKey,
@@ -149,13 +154,12 @@ export default function CheckoutScreen() {
       allowsDelayedPaymentMethods: false,
       defaultBillingDetails: {
         email: session?.user.email,
-        name: "Dave",
+        name: name,
       },
     });
     if (!error) {
       setLoading(true);
     }
-   
   };
 
   const openPaymentSheet = async () => {
@@ -173,34 +177,35 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Checkout</Text>
-      {/* <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text> */}
-      <Button disabled={!loading} title="Checkout" onPress={openPaymentSheet} />
-    </View>
+    <SafeAreaView className="flex-1 m-2 p-4 bg-white rounded-lg shadow-lg">
+      <View className="h-14 bg-white">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className=" shadow-2xl shadow-black"
+        >
+          <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+            <Path
+              d="M26.25 13.75H8.01748L14.6337 7.13371L12.8662 5.36621L3.23248 15L12.8662 24.6337L14.6337 22.8662L8.01748 16.25H26.25V13.75Z"
+              fill="black"
+            />
+          </Svg>
+        </TouchableOpacity>
+      </View>
+      <Image
+        source={{ uri: product.imageURLS[0] }}
+        className=" h-80 w-auto rounded-lg "
+      />
+      <View className="p-4">
+        <Text className="text-lg font-bold">{product.name}</Text>
+        <Text className="text-gray-600">{product.description}</Text>
+        <Text className="text-green-500 text-lg">${product.price}</Text>
+        <Text className="text-gray-500">Size: {product.size}</Text>
+        <Button
+          disabled={!loading}
+          title="Checkout"
+          onPress={openPaymentSheet}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  itemName: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  itemPrice: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-});
