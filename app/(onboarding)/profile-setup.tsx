@@ -25,6 +25,7 @@ interface FormState {
   username: string;
   bio: string;
   profile_picture: string;
+  name: string;
 }
 
 const initialFormState: FormState = {
@@ -32,6 +33,7 @@ const initialFormState: FormState = {
   username: "",
   bio: "",
   profile_picture: "",
+  name: "",
 
 };
 
@@ -302,6 +304,7 @@ const Onboarding = () => {
         interests: selectedInterests,
         gender: gender,
         completed_onboarding: true,
+        name: form.name,
 
       },
     ]);
@@ -504,6 +507,13 @@ const Onboarding = () => {
             handleChangeText={(e) => setForm({ ...form, username: e })}
             keyboardType="email-address"
             placeholder="Enter your username!"
+          />
+           <FormField
+            title="Name"
+            value={form.name}
+            handleChangeText={(e) => setForm({ ...form, name: e })}
+            keyboardType="email-address"
+            placeholder="Enter your name!"
           />
           <FormField
             title="Bio"

@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
+  Button,
 } from "react-native";
 import React from "react";
 import { useCart } from "../../providers/CartProvider";
@@ -16,6 +17,7 @@ import { supabase } from "../../lib/supabase";
 import { useState, useEffect } from "react";
 import { FlashList } from "@shopify/flash-list";
 import { useAuth } from "../../providers/AuthProvider";
+import { useStripe } from "@stripe/stripe-react-native";
 
 
 type Product = {
@@ -31,8 +33,9 @@ const Cart = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const { items, removeItem } = useCart();
   const { session } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   useEffect(() => {
     
@@ -96,6 +99,10 @@ const Cart = () => {
           ${item.price.toFixed(2)}
         </Text>
       </View>
+      <Button
+      title="Checkout"
+      onPress={(e) => router.push(`/checkout/${item.item_id}`)}
+      />
     </View>
   );
 

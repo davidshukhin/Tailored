@@ -111,7 +111,7 @@ const Product = () => {
     <SafeAreaView className="flex-1 bg-white">
       <View className="h-14 bg-white">
        <TouchableOpacity
-                onPress={() => router.push("/home")}
+                onPress={() => router.back()}
                 className="ml-4 absolute top-4 shadow-2xl shadow-black"
               >
                 <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">

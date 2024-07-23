@@ -8,8 +8,9 @@ import {
   Alert,
   TextInput,
   Button,
+  AppState,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { supabase } from "../../lib/supabase";
@@ -67,6 +68,7 @@ const Create = () => {
   const [inputValue, setInputValue] = useState("");
   const [tagsList, setTagsList] = useState<string[]>([]);
   const [isSeller, setIsSeller] = useState<boolean>();
+  const [accountStatus, setAccountStatus] = useState(false);
   const [accountCreatePending, setAccountCreatePending] = useState(false);
   const [onboardingExited, setOnboardingExited] = useState(false);
   const [error, setError] = useState(false);
@@ -74,6 +76,9 @@ const Create = () => {
   const stripeConnectInstance = useStripeConnect(connectedAccountId);
   const [isLoading, setIsLoading] = useState(true);
   const { session } = useAuth();
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+  const [sellerData, setSellerData] = useState<any>();
   const clothingColors = [
     "Black",
     "White",
@@ -111,6 +116,72 @@ const Create = () => {
     checkSellerStatus();
   }, []);
 
+  useEffect(() => {
+    checkSellerStatus();
+    if (connectedAccountId) {
+      checkAccountStatus(connectedAccountId);
+    }
+    console.log("account" + accountStatus);
+  }, [connectedAccountId]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const handleAppStateChange = async (nextAppState) => {
+    if (
+      appState.current.match(/inactive|background/) &&
+      nextAppState === "active"
+    ) {
+      console.log("App has come to the foreground!");
+      await WebBrowser.coolDownAsync();
+      if (connectedAccountId) {
+        checkAccountStatus(connectedAccountId);
+      }
+    }
+    appState.current = nextAppState;
+    setAppStateVisible(appState.current);
+  };
+
+  const checkAccountStatus = async (accountId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4242/account_status/${accountId}`,
+        {
+          method: "GET",
+        }
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        console.error("Error fetching account status:", data.error);
+        return;
+      }
+      console.log("Account status:", data.charges_enabled);
+
+      setAccountStatus(data.charges_enabled);
+
+      if (data.charges_enabled) {
+        const { data, error } = await supabase
+          .from("sellers")
+          .insert([{ stripe_id: connectedAccountId, completed_onboarding: true }])
+          .select();
+
+          if(data){
+            setIsSeller(true);
+          }
+      }
+    } catch (error) {
+      console.error("Error checking account status:", error);
+    }
+  };
+
   const checkSellerStatus = async () => {
     try {
       const { data, error } = await supabase
@@ -124,6 +195,7 @@ const Create = () => {
 
       if (data.length > 0) {
         setIsSeller(true);
+        setSellerData(data[0]);
       } else {
         setIsSeller(false);
       }
@@ -189,6 +261,7 @@ const Create = () => {
             size: size,
             condition: form.condition,
             category: category,
+            seller_id: connectedAccountId ?? sellerData.id,
           },
         ])
         .select();
@@ -400,110 +473,113 @@ const Create = () => {
     );
   };
 
-  
+  const handleOnboarding = async () => {
+    setIsLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch(`http://localhost:4242/account_links/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          account: { connectedAccountId },
+        }),
+      });
+
+      const json = await response.json();
+      console.log("Response data:", json);
+
+      if (json.link) {
+        console.log("Opening onboarding link:", json.link.url);
+
+        // Open the WebBrowser and wait for it to complete
+        const result = await WebBrowser.openAuthSessionAsync(json.link.url);
+
+        if (result.type === "success") {
+          // User has returned from the WebView
+          console.log("User returned from onboarding");
+
+          // Check the account status
+          await checkAccountStatus(connectedAccountId);
+        }
+      } else if (json.error) {
+        setError(true);
+        console.error("Error in onboarding:", json.error);
+      }
+    } catch (error) {
+      setError(true);
+      console.error("An error occurred during onboarding:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // change to !accountCreatePending for proper funcionality. This is just for demo
   if (!connectedAccountId && !isSeller) {
     return (
-      
       <View className="flex-1 justify-center items-center">
         <Text className="text-2xl font-mbold">
           You need to be a seller to list items
         </Text>
-        
-     
-        {!accountCreatePending && (
-        <TouchableOpacity
-                  className="bg-green-500 p-3 rounded"
-                  onPress={async () => {
-                    setAccountCreatePending(true);
-                    setError(false);
-                    fetch("http://localhost:4242/account", {
-                      method: "POST",
-                    })
-                      .then((response) => response.json())
-                      .then((json) => {
-                        setAccountCreatePending(false);
-                        const { account, error } = json;
 
-                        if (account) {
-                          setConnectedAccountId(account);
-                        }
-                        console.log(account);
-                        if (error) {
-                          setError(true);
-                        }
-                      });
-                  }}
-                >
-                  <Text className="text-white text-center font-semibold">
-                    Sign Up
-                  </Text>
-                </TouchableOpacity>
+        {!accountCreatePending && (
+          <TouchableOpacity
+            className="bg-green-500 p-3 rounded"
+            onPress={async () => {
+              setAccountCreatePending(true);
+              setError(false);
+              fetch("http://localhost:4242/account", {
+                method: "POST",
+              })
+                .then((response) => response.json())
+                .then((json) => {
+                  setAccountCreatePending(false);
+                  const { account, error } = json;
+
+                  if (account) {
+                    setConnectedAccountId(account);
+                  }
+                  console.log(account);
+                  if (error) {
+                    setError(true);
+                  }
+                });
+            }}
+          >
+            <Text className="text-white text-center font-semibold">
+              Sign Up
+            </Text>
+          </TouchableOpacity>
         )}
-       
-        
       </View>
     );
   }
 
-
-  if(connectedAccountId && !isSeller){
-
-  return (
-    <SafeAreaView className="flex-1">
-      <Text className="text-lg font-semibold mb-2">
-        Add information to start accepting money
-      </Text>
-      <Text className="mb-4">
-        Tailored partners with Stripe to help you receive payments while
-        keeping your personal and bank details secure.
-      </Text>
-      {!accountUpdatePending && !connectedAccountUpdated && (
-        <TouchableOpacity
-          className="bg-blue-500 p-3 rounded mb-4"
-          onPress={async () => {
-            setError(false);
-            console.log(
-              "Sending request to:",
-              `http://localhost:4242/account_links/${connectedAccountId}`
-            );
-            fetch(`http://localhost:4242/account_links/`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                account: { connectedAccountId },
-              }),
-            })
-              .then((response) => response.json())
-              .then((json) => {
-                console.log("Response data:", json);
-                const { link, error } = json;
-
-                if (link) {
-                  console.log("Opening onboarding link:", link.url);
-                  WebBrowser.openBrowserAsync(link.url).catch((err) =>
-                    console.error("An error occurred", err)
-                  );
-                  setIsSeller(true)
-                }
-
-                if (error) {
-                  setError(true);
-                }
-              });
-          }}
-        >
-          <Text className="text-white text-center font-semibold">
-            Add Info
-          </Text>
-        </TouchableOpacity>
-      )}
-    
-    </SafeAreaView>
-  )}
-
+  if (connectedAccountId && !isSeller) {
+    return (
+      <SafeAreaView className="flex-1">
+        <Text className="text-lg font-semibold mb-2">
+          Add information to start accepting money
+        </Text>
+        <Text className="mb-4">
+          Tailored partners with Stripe to help you receive payments while
+          keeping your personal and bank details secure.
+        </Text>
+        {!accountUpdatePending && !connectedAccountUpdated && (
+          <TouchableOpacity
+            className="bg-blue-500 p-3 rounded mb-4"
+            onPress={handleOnboarding}
+          >
+            <Text className="text-white text-center font-semibold">
+              Add Info
+            </Text>
+          </TouchableOpacity>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   if (uploading) {
     return (
@@ -512,7 +588,6 @@ const Create = () => {
       </View>
     );
   }
-
 
   if (isSeller) {
     return (
@@ -549,6 +624,14 @@ const Create = () => {
             placeholder="Item Name"
             handleChangeText={(e) => setForm({ ...form, name: e })}
             otherStyles={{ marginTop: 10 }}
+          />
+
+          <FormField
+            title="Description"
+            value={form.description}
+            placeholder="Item description"
+            handleChangeText={(e) => setForm({ ...form, description: e })}
+            otherStyles={{ marginTop: 7 }}
           />
           <View className="flex-row items-start justify-between">
             <View className="mt-2 bg-white">
@@ -653,14 +736,7 @@ const Create = () => {
               </View>
             </View>
           </View>
-        
-          <FormField
-            title="Description"
-            value={form.description}
-            placeholder="Item description"
-            handleChangeText={(e) => setForm({ ...form, description: e })}
-            otherStyles={{ marginTop: 7 }}
-          />
+
           <View className="mb-16">
             <CustomButton
               title="List item"
