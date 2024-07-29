@@ -207,36 +207,54 @@ export default function CheckoutScreen() {
     }
 }
 
-async function createAddress(address: AddressCreateRequest) {
-  const response = await fetch('http://localhost:3000/create-address', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(address)
+async function createShipment() {
+  const response = await fetch('http://localhost:3000/create-shipment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      addressFrom: {
+        name: 'Shawn Ippotle',
+        street1: '215 Clayton St.',
+        city: 'San Francisco',
+        state: 'CA',
+        zip: '94117',
+        country: 'US',
+        phone: '+1 555 341 9393',
+        email: 'shippotle@goshippo.com',
+      },
+      addressTo: {
+        name: 'Mr Hippo',
+        street1: 'Broadway 1',
+        city: 'New York',
+        state: 'NY',
+        zip: '10007',
+        country: 'US',
+        phone: '+1 555 341 9393',
+        email: 'mrhippo@goshippo.com',
+      },
+      parcel: {
+        length: '5',
+        width: '5',
+        height: '5',
+        distance_unit: 'in',
+        weight: '2',
+        massUnit: 'lb',
+      },
+    }),
   });
 
-  if (!response.ok) {
-      throw new Error('Failed to create address');
+  const data = await response.json();
+  if (response.ok) {
+    console.log('Label URL:', data.label_url);
+  } else {
+    console.log("error")
+    console.error('Error:', data.error);
   }
-
-  return response.json();
 }
 
-const addressFrom: AddressCreateRequest = {
-  name: "Shawn Ippotle",
-  company: "Shippo",
-  street1: "215 Clayton St.",
-  city: "San Francisco",
-  state: "CA",
-  zip: "94117",
-  country: "US",
-  phone: "+1 555 341 9393",
-  email: "shippotle@shippo.com",
-};
-
-createAddress(addressFrom)
-  .then(address => console.log('Address created:', address))
-  .catch(error => console.error('Error:', error));
-
+createShipment();
 
 
   if (!product) {
