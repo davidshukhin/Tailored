@@ -300,7 +300,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center items-center mb-20 mt-4 ">
+        <View className="flex-row justify-center items-center mb-14 ">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {

@@ -17,8 +17,24 @@ import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../providers/AuthProvider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Path, G } from "react-native-svg";
+import Shippo from "shippo";
 
 const API_URL = "http://localhost:4242"; // Replace with your actual API URL
+
+interface AddressCreateRequest {
+  name: string;
+  company?: string;
+  street1: string;
+  street2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  phone: string;
+  email: string;
+  metadata?: string;
+}
+
 
 export default function CheckoutScreen() {
   const { id } = useLocalSearchParams();
@@ -172,6 +188,57 @@ export default function CheckoutScreen() {
     }
   };
 
+//working code. for testing purposes
+  const shippingAddress = async () => {
+    try {
+        console.log("Attempting to create address...");
+        fetch('http://localhost:3000/create-address')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok ' + response.statusText);
+    }
+    return response.json();
+  })
+  .then(data => console.log(data))
+  .catch(error => console.error('There was a problem with the fetch operation:', error));
+
+    } catch (error) {
+        console.error("Error creating address:", error);
+    }
+}
+
+async function createAddress(address: AddressCreateRequest) {
+  const response = await fetch('http://localhost:3000/create-address', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(address)
+  });
+
+  if (!response.ok) {
+      throw new Error('Failed to create address');
+  }
+
+  return response.json();
+}
+
+const addressFrom: AddressCreateRequest = {
+  name: "Shawn Ippotle",
+  company: "Shippo",
+  street1: "215 Clayton St.",
+  city: "San Francisco",
+  state: "CA",
+  zip: "94117",
+  country: "US",
+  phone: "+1 555 341 9393",
+  email: "shippotle@shippo.com",
+};
+
+createAddress(addressFrom)
+  .then(address => console.log('Address created:', address))
+  .catch(error => console.error('Error:', error));
+
+
+
   if (!product) {
     return <Text>Loading item details...</Text>;
   }
@@ -194,7 +261,7 @@ export default function CheckoutScreen() {
       <Image
         source={{ uri: product.imageURLS[0] }}
         className=" h-80 w-auto rounded-lg "
-      />
+      /> 
       <View className="p-4">
         <Text className="text-lg font-bold">{product.name}</Text>
         <Text className="text-gray-600">{product.description}</Text>
@@ -205,6 +272,11 @@ export default function CheckoutScreen() {
           title="Checkout"
           onPress={openPaymentSheet}
         />
+
+        <Button
+          title="Shipping Address"
+          onPress={shippingAddress}
+          />
       </View>
     </SafeAreaView>
   );

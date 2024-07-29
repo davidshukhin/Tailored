@@ -30,6 +30,7 @@
     "@supabase/supabase-js": "^2.43.4",
     "babel-preset-expo": "^11.0.6",
     "base64-arraybuffer": "^1.0.2",
+    "body-parser": "^1.20.2",
     "connect": "^3.7.0",
     "cors": "^2.8.5",
     "decode": "^0.3.0",
