@@ -82,7 +82,7 @@ export default function App() {
             By tapping Create Account or Sign In, you agree to our Terms. Learn
             how we process your data in our Privacy Policy and Cookies Policy.
           </Text>
-          <TouchableOpacity className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
+          <TouchableOpacity onPress={()=>router.push('/home')} className="bg-primary w-3/4 h-12 rounded-3xl mt-4 items-center justify-center border-white border-2">
             <Text className="text-white">Sign in with Google</Text>
           </TouchableOpacity>
           <Link href="/sign-in" asChild>

@@ -256,12 +256,12 @@ const Home = () => {
           <Image source={icons.cart} className="w-8 h-8" />
         </TouchableOpacity>
       </View>
-      <GestureHandlerRootView className="flex-1 bg-gray-100">
+      <GestureHandlerRootView className="flex-1 bg-background">
         <View className="flex-1 justify-center items-center">
           <Swiper
             ref={ref}
             cardStyle={{
-              backgroundColor: "white",
+              backgroundColor: "black",
               shadowRadius: 10,
               borderRadius: 24,
               height: "100%",
@@ -300,7 +300,7 @@ const Home = () => {
           />
         </View>
 
-        <View className="flex-row justify-center items-center mb-14 ">
+        {/* <View className="flex-row justify-center items-center mb-14">
           <TouchableOpacity
             className="shadow-sm"
             onPress={() => {
@@ -323,7 +323,7 @@ const Home = () => {
           >
             <Image source={icons.message_button} className="w-24 h-24" />
           </TouchableOpacity>
-        </View>
+        </View> */}
       </GestureHandlerRootView>
     </SafeAreaView>
   );

@@ -148,7 +148,7 @@ const Likes = () => {
     console.log("Rendering item:", item); // Debug log to check item data
     return (
       <TouchableOpacity onPress={() => router.push(`/product/${item.item_id}`)}>
-        <View className="m-2  bg-white rounded-3xl shadow ">
+        <View className="m-2  bg-background rounded-3xl shadow ">
           <Image
             source={{ uri: item.imageURLS[0] }}
             className="w-full rounded-3xl"
@@ -197,8 +197,8 @@ const Likes = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center bg-white">
-      <Text className="text-2xl font-mbold text-black mt-4">Likes</Text>
+    <SafeAreaView className="flex-1 items-center bg-background">
+      <Text className="text-2xl font-mbold text-text mt-4">Likes</Text>
       <View className="h-full w-full m-2">
         {loading ? (
           <ActivityIndicator size="large" />
